@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-# Version 1.0.1
+# Version 1.0.2
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -23,7 +23,7 @@
 #############################################
 # passed variables
 #############################################
-while getopts "s:h" opt; do
+while getopts "s:h" opt;do
     case $opt in
         s) sourceserver=$OPTARG;;
         h) print_help;;  # [todo] needs addition of usage menu with this function
