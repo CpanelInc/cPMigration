@@ -26,7 +26,7 @@
 while getopts "s:h" opt;do
     case $opt in
         s) sourceserver=$OPTARG;;
-        h) print_help;;  # [todo] needs addition of usage menu with this function
+        h) print_help;;
         \?) echo "Invalid option: -$OPTARG" >&2;;
     esac
 done
