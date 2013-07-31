@@ -1,7 +1,7 @@
 #!/bin/bash
-#  cPanel Migration Script "CopyPasta"
-#  (c) 2013 cPanel, Inc
-#  by Phil Stark
+# Maintained by Phil Stark
+#
+# Version 1.0.1
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -10,7 +10,7 @@
 # otherwise failed in WHM "Copy multiple accounts ..."
 #
 # usage: run on destination server
-# $ sh copyscript <ticket> <sourceIP>
+# $ sh copyscript <sourceIP>
 ####################
 # This script copies all accounts from the source server that do not exist
 # on the destination server already.
@@ -23,9 +23,6 @@
 # Variables that need to be set for every ticket
 #############################################
 args=("$@")
-
-# the relevant ticket number
-ticket="${args[0]}";
 
 # a RSA key should be set up Destination > Source before running this script for password-less login.
 sourceserver="${args[1]}";
@@ -50,28 +47,28 @@ removedestpkgs=0
 ### Parse a list of accounts that need to be copied
 #############################################
 
-# Make cp ticket directory
-mkdir /root/cp$ticket
+# Make working directory
+mkdir /root/.copyscript
 
 # grab source accounts list
-scp root@$sourceserver:/etc/trueuserdomains /root/cp$ticket/.sourcetudomains
+scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
 
 # sort source accounts list
-sort /root/cp$ticket/.sourcetudomains > /root/cp$ticket/.sourcedomains
+sort /root/.copyscript/.sourcetudomains > /root/.copyscript/.sourcedomains
 
 # grab and sort local (destination) accounts list
-sort /etc/trueuserdomains > /root/cp$ticket/.destdomains
+sort /etc/trueuserdomains > /root/.copyscript/.destdomains
 
 # diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
-diff -y /root/cp$ticket/.sourcedomains /root/cp$ticket/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/cp$ticket/.copyaccountlist
+diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/.copyscript/.copyaccountlist
 
 
 #############################################
 # Process loop
 #############################################
 i=1
-count=`cat /root/cp$ticket/.copyaccountlist | wc -l`
-for user in `cat /root/cp$ticket/.copyaccountlist`
+count=`cat /root/.copyscript/.copyaccountlist | wc -l`
+for user in `cat /root/.copyscript/.copyaccountlist`
 do
 		progresspercent=`expr $i / $count` * 100
 		echo Processing account $user.  $i/$count \($progresspercent%\)
