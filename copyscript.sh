@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-# Version 1.0.3
+# Version 1.0.4
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -19,6 +19,21 @@
 # NOTE:  a RSA key should be set up Destination > Source before running
 # this script for password-less login.
 #############################################
+
+#############################################
+# functions
+#############################################
+print_help() {
+    echo 'usage:'
+    echo './copyscript -s sourceserver'
+    echo
+    echo 'required:' 
+    echo '-s sourceserver'
+    echo
+    echo 'optional:'
+    echo '-h displays this dialogue'
+    echo;exit 
+}
 
 #############################################
 # initial checks
