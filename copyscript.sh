@@ -21,12 +21,15 @@
 #############################################
 
 #############################################
-# Variables that need to be set for every ticket
+# passed variables
 #############################################
-args=("$@")
-
-# a RSA key should be set up Destination > Source before running this script for password-less login.
-sourceserver="${args[1]}";
+while getopts "s:h" opt; do
+    case $opt in
+        s) sourceserver=$OPTARG;;
+        h) print_help;;  # [todo] needs addition of usage menu with this function
+        \?) echo "Invalid option: -$OPTARG" >&2;;
+    esac
+done
 
 #############################################
 # options operators
