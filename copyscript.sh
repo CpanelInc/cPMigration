@@ -1,5 +1,6 @@
 #!/bin/bash
-# Maintained by Phil Stark
+# Original version written by Phil Stark
+# Maintained and updated by Phil Stark and Blaine Motsinger
 #
 # Version 1.0.1
 #
