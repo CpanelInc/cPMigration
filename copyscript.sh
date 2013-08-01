@@ -23,6 +23,11 @@ VERSION="1.0.6"
 #############################################
 # functions
 #############################################
+print_intro() {
+    echo 'copyscript'
+    echo "version $VERSION"
+}
+
 print_help() {
     echo 'usage:'
     echo './copyscript -s sourceserver'
