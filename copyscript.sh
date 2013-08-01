@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-VERSION="1.0.4"
+VERSION="1.0.5"
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
