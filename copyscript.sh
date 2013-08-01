@@ -38,7 +38,7 @@ print_help() {
     echo 'optional:'
     echo '-p sourceport'
     echo '-h displays this dialogue'
-    echo;echo;exit 1
+    echo;exit 1
 }
 
 #############################################
@@ -64,6 +64,16 @@ if [[ $# -eq 0 || -z $sourceserver ]];then print_help;fi  # check for existence 
 if [ $EUID -ne 0 ];then
     echo 'copyscript must be run as root'
     echo;exit
+fi
+
+# check for connection or resolving sourceserver
+if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];then  # if ip  [todo] fine tune regex; this improperly matches 999.255.255.0
+    echo 'is ip'  # [todo] add check for connection of ip
+    echo;exit  # exit for testing
+elif [[ -z $(dig $sourceserver +short) ]];then
+    echo "$sourceserver does not appear to be resolving"
+    echo 'please check your variable, as well as resolv.conf'
+    echo;exit 1
 fi
 
 #############################################
