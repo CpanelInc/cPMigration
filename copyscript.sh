@@ -71,11 +71,15 @@ removesourcepkgs=0
 removedestpkgs=0
 
 #############################################
-### Parse a list of accounts that need to be copied
+### Pre-Processing
 #############################################
 
 # Make working directory
 mkdir /root/.copyscript
+mkdir /root/.copyscript/log
+
+# Define epoch time
+epoch=`date +%s`
 
 # grab source accounts list
 scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
@@ -97,34 +101,34 @@ i=1
 count=`cat /root/.copyscript/.copyaccountlist | wc -l`
 for user in `cat /root/.copyscript/.copyaccountlist`
 do
-		progresspercent=`expr $i / $count` * 100
-		echo Processing account $user.  $i/$count \($progresspercent%\)
+progresspercent=`expr $i / $count` * 100 
+		echo Processing account $user.  $i/$count \($progresspercent%\) > >(tee /root/.copyscript/log/$epoch.log)
 
 		# Package accounts on source server (if set)
 		if [ $pkgaccounts == 1 ]
 			then
-			ssh root@$sourceserver "/scripts/pkgacct $user;exit"	
+			ssh root@$sourceserver "/scripts/pkgacct $user;exit"	> >(tee /root/.copyscript/log/$epoch.log)
 		fi
 
 		# copy (scp) the cpmove file from the source to destination server
-		scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/
+		scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ > >(tee /root/.copyscript/log/$epoch.log)
 
 		# Remove cpmove from source server (if set)
 		if [ $removesourcepkgs == 1 ]
 			then
-			ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	
+			ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 > >(tee /root/.copyscript/log/$epoch.log)
 		fi
 
 		# Restore package on the destination server (if set)
 		if [ $restorepkg == 1 ]
 			then
-			/scripts/restorepkg /home/cpmove-$user.tar.gz
+			/scripts/restorepkg /home/cpmove-$user.tar.gz  > >(tee /root/.copyscript/log/$epoch.log)
 		fi
 
 		# Remove cpmove from destination server (if set)
 		if [ $removedestpkgs == 1 ]
 			then
-			rm -f /home/cpmove-$user.tar.gz	
+			rm -fv /home/cpmove-$user.tar.gz	  > >(tee /root/.copyscript/log/$epoch.log)
 		fi		
 		i=`expr $i + 1`
 done
