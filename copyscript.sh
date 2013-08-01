@@ -28,31 +28,38 @@ print_help() {
     echo './copyscript -s sourceserver'
     echo
     echo 'required:' 
-    echo '-s sourceserver'
+    echo '-s sourceserver (hostname or ip)'
     echo
     echo 'optional:'
+    echo '-p sourceport'
     echo '-h displays this dialogue'
-    echo;exit 
+    echo;echo;exit 1
 }
+
+#############################################
+# get options and checking
+#############################################
+while getopts ":s:p:h" opt;do
+    case $opt in
+        s) sourceserver="$OPTARG";;
+        p) sourceport="$OPTARG";;
+        h) print_help;;
+       \?) echo "invalid option: -$OPTARG";echo;print_help;;
+        :) echo "option -$OPTARG requires an argument.";echo;print_help;;
+    esac
+done
+
+if [[ $# -eq 0 || -z $sourceserver ]];then print_help;fi
 
 #############################################
 # initial checks
 #############################################
+
+# check for root
 if [ $EUID -ne 0 ];then
     echo 'copyscript must be run as root'
     echo;exit
 fi
-
-#############################################
-# passed variables
-#############################################
-while getopts "s:h" opt;do
-    case $opt in
-        s) sourceserver=$OPTARG;;
-        h) print_help;;
-        \?) echo "Invalid option: -$OPTARG" >&2;;
-    esac
-done
 
 #############################################
 # options operators
