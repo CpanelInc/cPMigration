@@ -37,7 +37,7 @@ print_help() {
 }
 
 #############################################
-# get options and checking
+# get options
 #############################################
 while getopts ":s:p:h" opt;do
     case $opt in
@@ -49,7 +49,7 @@ while getopts ":s:p:h" opt;do
     esac
 done
 
-if [[ $# -eq 0 || -z $sourceserver ]];then print_help;fi
+if [[ $# -eq 0 || -z $sourceserver ]];then print_help;fi  # check for existence of required var
 
 #############################################
 # initial checks
