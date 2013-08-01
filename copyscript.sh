@@ -63,12 +63,14 @@ if [[ $# -eq 0 || -z $sourceserver ]];then print_help;fi  # check for existence 
 # check for root
 if [ $EUID -ne 0 ];then
     echo 'copyscript must be run as root'
-    echo;exit
+    echo;exit 1
 fi
 
 # check for connection or resolving sourceserver
 if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];then  # if ip  [todo] fine tune regex; this improperly matches 999.255.255.0
-    echo 'is ip'  # [todo] add check for connection of ip
+    if [[ $(ping -c1 -w2 $sourceserver) =~ .*'64 bytes'.* ]];then echo 'connection is fine'  # [todo] this may be not necessary, or possibliy of expanding this whole section into a more vast connection check, using port
+    else echo 'connection is broken'  # output for testing
+    fi
     echo;exit  # exit for testing
 elif [[ -z $(dig $sourceserver +short) ]];then
     echo "$sourceserver does not appear to be resolving"
