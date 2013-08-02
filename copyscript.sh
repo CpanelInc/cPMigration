@@ -54,7 +54,7 @@ install_sshpass(){
 #############################################
 # get options
 #############################################
-while getopts ":s:p:h" opt;do
+while getopts ":s:p:hS" opt;do
     case $opt in
         s) sourceserver="$OPTARG";;
         p) sourceport="$OPTARG";;
