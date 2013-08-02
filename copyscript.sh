@@ -88,10 +88,10 @@ pkgaccounts=1
 restorepkg=1
 
 # Delete cpmove files from the source once transferred to the destination server
-removesourcepkgs=0
+removesourcepkgs=1
 
 # Delete cpmove files from the destination server once restored
-removedestpkgs=0
+removedestpkgs=1
 
 #############################################
 ### Pre-Processing
