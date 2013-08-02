@@ -97,6 +97,12 @@ removedestpkgs=0
 ### Pre-Processing
 #############################################
 
+# set SSH/SCP commands
+read -s -p "Enter Source server's root password:" SSHPASSWORD
+sshpass="/root/.copyscript/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
+ssh="$sshpass ssh"
+scp="$sshpass scp"
+
 # Make working directory
 mkdir /root/.copyscript
 mkdir /root/.copyscript/log
@@ -105,7 +111,7 @@ mkdir /root/.copyscript/log
 epoch=`date +%s`
 
 # grab source accounts list
-scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
+$scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
 
 # sort source accounts list
 sort /root/.copyscript/.sourcetudomains > /root/.copyscript/.sourcedomains
@@ -130,16 +136,16 @@ progresspercent=`expr $i / $count` * 100
 		# Package accounts on source server (if set)
 		if [ $pkgaccounts == 1 ]
 			then
-			ssh root@$sourceserver "/scripts/pkgacct $user;exit"	> >(tee --append /root/.copyscript/log/$epoch.log)
+			$ssh root@$sourceserver "/scripts/pkgacct $user;exit"	> >(tee --append /root/.copyscript/log/$epoch.log)
 		fi
 
 		# copy (scp) the cpmove file from the source to destination server
-		scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ > >(tee --append /root/.copyscript/log/$epoch.log)
+		$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ > >(tee --append /root/.copyscript/log/$epoch.log)
 
 		# Remove cpmove from source server (if set)
 		if [ $removesourcepkgs == 1 ]
 			then
-			ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 > >(tee --append /root/.copyscript/log/$epoch.log)
+			$ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 > >(tee --append /root/.copyscript/log/$epoch.log)
 		fi
 
 		# Restore package on the destination server (if set)
