@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-VERSION="1.0.9"
+VERSION="1.0.10"
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -71,6 +71,19 @@ mkdir_ifneeded(){
 if [ ! -d $1 ]; then
 	mkdir -p $1
 fi
+}
+
+set_logging_mode{
+case "$1" in
+	verbose)
+		logmode="all"
+		outputmode="all"
+		;;
+	*)
+		logmode="all"
+		outputmode="all"
+		;;
+
 }
 
 #############################################
