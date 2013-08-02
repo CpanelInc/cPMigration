@@ -42,7 +42,7 @@ print_help() {
 }
 
 install_sshpass(){
-	mkdir /root/.copyscript/.sshpass
+	mkdir_ifneeded /root/.copyscript/.sshpass
 	cd /root/.copyscript/.sshpass
 	wget -P /root/.copyscript/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz
 	tar -zxvf /root/.copyscript/.sshpass/sshpass-1.05.tar.gz -C /root/.copyscript/.sshpass/
@@ -65,6 +65,12 @@ sort /etc/trueuserdomains > /root/.copyscript/.destdomains
 # diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
 diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/.copyscript/.copyaccountlist
 
+}
+
+mkdir_ifneeded(){
+if [ ! -d $1 ]; then
+	mkdir -p $1
+fi
 }
 
 #############################################
@@ -120,8 +126,7 @@ ssh="$sshpass ssh"
 scp="$sshpass scp"
 
 # Make working directory
-mkdir /root/.copyscript
-mkdir /root/.copyscript/log
+mkdir_ifneeded /root/.copyscript/log
 
 # Define epoch time
 epoch=`date +%s`
