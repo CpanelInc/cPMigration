@@ -41,6 +41,15 @@ print_help() {
     echo;echo;exit 1
 }
 
+install_sshpass() {
+echo "sshpass has not been installed on this destination.  Install it? [y/N]"
+
+
+mkdir /root/.copyscript/.sshpass
+wget -P /root/.copyscript/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz
+
+}
+
 #############################################
 # get options
 #############################################
