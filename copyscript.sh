@@ -73,6 +73,19 @@ if [ ! -d $1 ]; then
 fi
 }
 
+set_logging_mode{
+case "$1" in
+	verbose)
+		logmode="all"
+		outputmode="all"
+		;;
+	*)
+		logmode="all"
+		outputmode="all"
+		;;
+
+}
+
 #############################################
 # get options
 #############################################
