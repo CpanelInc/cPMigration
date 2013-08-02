@@ -51,6 +51,22 @@ install_sshpass(){
  	make
 }
 
+generate_accounts_list(){
+
+# grab source accounts list
+$scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
+
+# sort source accounts list
+sort /root/.copyscript/.sourcetudomains > /root/.copyscript/.sourcedomains
+
+# grab and sort local (destination) accounts list
+sort /etc/trueuserdomains > /root/.copyscript/.destdomains
+
+# diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
+diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/.copyscript/.copyaccountlist
+
+}
+
 #############################################
 # get options
 #############################################
@@ -110,17 +126,8 @@ mkdir /root/.copyscript/log
 # Define epoch time
 epoch=`date +%s`
 
-# grab source accounts list
-$scp root@$sourceserver:/etc/trueuserdomains /root/.copyscript/.sourcetudomains
-
-# sort source accounts list
-sort /root/.copyscript/.sourcetudomains > /root/.copyscript/.sourcedomains
-
-# grab and sort local (destination) accounts list
-sort /etc/trueuserdomains > /root/.copyscript/.destdomains
-
-# diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
-diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/.copyscript/.copyaccountlist
+#Generate accounts list
+generate_accounts_list
 
 
 #############################################
