@@ -73,6 +73,18 @@ if [ ! -d $1 ]; then
 fi
 }
 
+set_logging_mode(){
+logfile="/root/.copyscript/log/$epoch.log"
+case "$1" in
+	verbose)
+		logoutput="> >(tee --append $logfile )"
+		;;
+	*)
+		logoutput=">> $logfile "
+		;;
+esac
+}
+
 #############################################
 # get options
 #############################################
@@ -141,42 +153,52 @@ epoch=`date +%s`
 #Generate accounts list
 generate_accounts_list
 
+#Set logging mo
+set_logging_mode
+
 
 #############################################
 # Process loop
 #############################################
+logfile="/root/.copyscript/log/$epoch.log"
+logoutput=">> $logfile "
+
 i=1
 count=`cat /root/.copyscript/.copyaccountlist | wc -l`
 for user in `cat /root/.copyscript/.copyaccountlist`
 do
 progresspercent=`expr $i / $count` * 100 
-		echo Processing account $user.  $i/$count \($progresspercent%\) > >(tee --append /root/.copyscript/log/$epoch.log)
+		echo Processing account $user.  $i/$count \($progresspercent%\) > >(tee --append $logfile )
 
 		# Package accounts on source server (if set)
 		if [ $pkgaccounts == 1 ]
 			then
-			$ssh root@$sourceserver "/scripts/pkgacct $user;exit"	> >(tee --append /root/.copyscript/log/$epoch.log)
+			echo "Packaging account on source server..."  > >(tee --append $logfile )
+			$ssh root@$sourceserver "/scripts/pkgacct $user;exit"	>> $logfile 
 		fi
 
 		# copy (scp) the cpmove file from the source to destination server
-		$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ > >(tee --append /root/.copyscript/log/$epoch.log)
-
+		echo "Copying the package from source to destination..."  > >(tee --append $logfile )
+		$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 
 		# Remove cpmove from source server (if set)
 		if [ $removesourcepkgs == 1 ]
 			then
-			$ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 > >(tee --append /root/.copyscript/log/$epoch.log)
+			echo "Removing the package from the source..."  > >(tee --append $logfile )
+			$ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 >> $logfile 
 		fi
 
 		# Restore package on the destination server (if set)
 		if [ $restorepkg == 1 ]
 			then
-			/scripts/restorepkg /home/cpmove-$user.tar.gz  > >(tee --append /root/.copyscript/log/$epoch.log)
+			echo "Restoring the package to the destination..."  > >(tee --append $logfile )
+			/scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 
 		fi
 
 		# Remove cpmove from destination server (if set)
 		if [ $removedestpkgs == 1 ]
 			then
-			rm -fv /home/cpmove-$user.tar.gz	  > >(tee --append /root/.copyscript/log/$epoch.log)
+			echo "Removing the package from the destination..."  > >(tee --append $logfile )
+			rm -fv /home/cpmove-$user.tar.gz	 >> $logfile 
 		fi		
 		i=`expr $i + 1`
 done
