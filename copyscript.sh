@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-VERSION="1.0.10"
+VERSION="1.0.11"
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -99,15 +99,10 @@ if [ $EUID -ne 0 ];then
     echo;exit 1
 fi
 
-# check for connection or resolving sourceserver
-if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];then  # if ip  [todo] fine tune regex; this improperly matches 999.255.255.0
-    if [[ $(ping -c1 -w2 $sourceserver) =~ .*'64 bytes'.* ]];then echo 'connection is fine'  # [todo] this may be not necessary, or possibliy of expanding this whole section into a more vast connection check, using port
-    else echo 'connection is broken'  # output for testing
-    fi
-    echo;exit  # exit for testing
+# check for resolving sourceserver
+if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];then :
 elif [[ -z $(dig $sourceserver +short) ]];then
     echo "$sourceserver does not appear to be resolving"
-    echo 'please check your variable, as well as resolv.conf'
     echo;exit 1
 fi
 
