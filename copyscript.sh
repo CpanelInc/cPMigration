@@ -88,12 +88,11 @@ esac
 #############################################
 # get options
 #############################################
-while getopts ":s:p:hS" opt;do
+while getopts ":s:p:h" opt;do
     case $opt in
         s) sourceserver="$OPTARG";;
         p) sourceport="$OPTARG";;
         h) print_help;;
-        S) install_sshpass;;
        \?) echo "invalid option: -$OPTARG";echo;print_help;;
         :) echo "option -$OPTARG requires an argument.";echo;print_help;;
     esac
@@ -130,6 +129,11 @@ removedestpkgs=1
 #############################################
 ### Pre-Processing
 #############################################
+
+# install sshpass
+if [ ! -f '/root/.copyscript/.sshpass/sshpass-1.05/sshpass' ];then
+    install_sshpass
+fi
 
 # set SSH/SCP commands
 read -s -p "Enter Source server's root password:" SSHPASSWORD
