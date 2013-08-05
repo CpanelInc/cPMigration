@@ -134,8 +134,13 @@ removedestpkgs=1
 # set SSH/SCP commands
 read -s -p "Enter Source server's root password:" SSHPASSWORD
 sshpass="/root/.copyscript/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
-ssh="$sshpass ssh"
-scp="$sshpass scp"
+if [ -z $sourceport ];then
+    ssh="$sshpass ssh -p $sourceport"
+    scp="$sshpass scp -P $sourceport"
+else
+    ssh="$sshpass ssh"
+    scp="$sshpass scp"
+fi
 
 # Make working directory
 mkdir_ifneeded /root/.copyscript/log
