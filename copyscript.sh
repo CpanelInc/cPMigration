@@ -138,7 +138,7 @@ fi
 # set SSH/SCP commands
 read -s -p "Enter Source server's root password:" SSHPASSWORD
 sshpass="/root/.copyscript/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
-if [ -z $sourceport ];then
+if [[ $sourceport != '' ]];then  # [todo] check into more elegant solution
     ssh="$sshpass ssh -p $sourceport"
     scp="$sshpass scp -P $sourceport"
 else
