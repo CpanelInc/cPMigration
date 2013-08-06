@@ -64,7 +64,7 @@ sort /root/.copyscript/.sourcetudomains > /root/.copyscript/.sourcedomains
 sort /etc/trueuserdomains > /root/.copyscript/.destdomains
 
 # diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
-diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' > /root/.copyscript/.copyaccountlist
+diff -y /root/.copyscript/.sourcedomains /root/.copyscript/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' | grep -v "cptkt" > /root/.copyscript/.copyaccountlist
 
 }
 
