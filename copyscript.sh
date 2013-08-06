@@ -36,6 +36,7 @@ print_help() {
     echo '-s sourceserver (hostname or ip)'
     echo
     echo 'optional:'
+    echo '-a <username or domain>,  single account mode'
     echo '-p sourceport'
     echo '-h displays this dialogue'
     echo;echo;exit 1
@@ -88,10 +89,11 @@ esac
 #############################################
 # get options
 #############################################
-while getopts ":s:p:h" opt;do
+while getopts ":s:p:a:h" opt;do
     case $opt in
         s) sourceserver="$OPTARG";;
         p) sourceport="$OPTARG";;
+        a) singlemode="1";targetaccount="$OPTARG";;
         h) print_help;;
        \?) echo "invalid option: -$OPTARG";echo;print_help;;
         :) echo "option -$OPTARG requires an argument.";echo;print_help;;
@@ -165,8 +167,16 @@ set_logging_mode
 logfile="/root/.copyscript/log/$epoch.log"
 logoutput=">> $logfile "
 
+#Override the normal accounts list if we're in Single user mode
+if [ $singlemode -eq "1" ]
+	then
+	grep $targetaccount /root/.copyscript/.sourcetudomains | head -1 | awk '{print $2}' > /root/.copyscript/.copyaccountlist;
+	
+fi
+
 i=1
 count=`cat /root/.copyscript/.copyaccountlist | wc -l`
+
 for user in `cat /root/.copyscript/.copyaccountlist`
 do
 progresspercent=`expr $i / $count` * 100 
