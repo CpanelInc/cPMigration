@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-VERSION="1.0.11"
+VERSION="1.0.12"
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
 # on the destination server, package and transfer those accounts,  and restore
@@ -36,6 +36,7 @@ print_help() {
     echo '-s sourceserver (hostname or ip)'
     echo
     echo 'optional:'
+    echo '-a <username or domain>,  single account mode'
     echo '-p sourceport'
     echo '-h displays this dialogue'
     echo;exit 1
@@ -88,12 +89,12 @@ esac
 #############################################
 # get options
 #############################################
-while getopts ":s:p:hS" opt;do
+while getopts ":s:p:a:h" opt;do
     case $opt in
         s) sourceserver="$OPTARG";;
         p) sourceport="$OPTARG";;
+        a) singlemode="1";targetaccount="$OPTARG";;
         h) print_help;;
-        S) install_sshpass;;
        \?) echo "invalid option: -$OPTARG";echo;print_help;;
         :) echo "option -$OPTARG requires an argument.";echo;print_help;;
     esac
@@ -138,11 +139,21 @@ removedestpkgs=1
 ### Pre-Processing
 #############################################
 
+# install sshpass
+if [ ! -f '/root/.copyscript/.sshpass/sshpass-1.05/sshpass' ];then
+    install_sshpass
+fi
+
 # set SSH/SCP commands
 read -s -p "Enter Source server's root password:" SSHPASSWORD
 sshpass="/root/.copyscript/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
-ssh="$sshpass ssh"
-scp="$sshpass scp"
+if [[ $sourceport != '' ]];then  # [todo] check into more elegant solution
+    ssh="$sshpass ssh -p $sourceport"
+    scp="$sshpass scp -P $sourceport"
+else
+    ssh="$sshpass ssh"
+    scp="$sshpass scp"
+fi
 
 # Make working directory
 mkdir_ifneeded /root/.copyscript/log
@@ -163,8 +174,16 @@ set_logging_mode
 logfile="/root/.copyscript/log/$epoch.log"
 logoutput=">> $logfile "
 
+#Override the normal accounts list if we're in Single user mode
+if [ $singlemode -eq "1" ]
+	then
+	grep $targetaccount /root/.copyscript/.sourcetudomains | head -1 | awk '{print $2}' > /root/.copyscript/.copyaccountlist;
+	
+fi
+
 i=1
 count=`cat /root/.copyscript/.copyaccountlist | wc -l`
+
 for user in `cat /root/.copyscript/.copyaccountlist`
 do
 progresspercent=`expr $i / $count` * 100 
