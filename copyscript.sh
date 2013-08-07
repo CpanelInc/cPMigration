@@ -89,14 +89,14 @@ esac
 
 setup_remote(){
         control_panel=`$ssh root@sourceserver "if [ -e /usr/local/psa/version ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"`
-	if [ $control_panel -eq 'cpanel' ]; then :  # no need to bring over things if cPanel
+	if [ $control_panel -eq 'cpanel' ]; then :  # no need to bring over things if cPanel#
 	elif [ $control_panel -eq 'plesk' ]; then  # wget or curl from httpupdate
-	# What stuff do we send over?  What scripts need to be run in preparation?
+	echo # What stuff do we send over?  What scripts need to be run in preparation?
 	elif [ $control_panel -eq 'ensim' ]; then
-	# What stuff do we send over?  What scripts need to be run in preparation?
+	echo # What stuff do we send over?  What scripts need to be run in preparation?
 	elif [ $control_panel -eq 'da' ]; then
-	# What stuff do we send over?  What scripts need to be run in preparation?
-	else echo 'your source control panel isn\'t supported at this time';exit
+	echo # What stuff do we send over?  What scripts need to be run in preparation?
+	else echo 'your source control panel isnt supported at this time' ;exit
 	fi
 }
 
@@ -147,7 +147,7 @@ removedestpkgs=1
 #############################################
 
 # install sshpass
-if [ ! -f '$scripthome/.sshpass/sshpass-1.05/sshpass' ];then
+if [ ! -f $scripthome/.sshpass/sshpass-1.05/sshpass ];then
     install_sshpass
 fi
 
@@ -193,8 +193,8 @@ count=`cat $scripthome/.copyaccountlist | wc -l`
 
 for user in `cat $scripthome/.copyaccountlist`
 do
-progresspercent=`expr $i / $count` * 100 
-		echo Processing account $user.  $i/$count \($progresspercent%\) > >(tee --append $logfile )
+progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
+		echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
 
 		# Package accounts on source server (if set)
 		if [ $pkgaccounts == 1 ]
