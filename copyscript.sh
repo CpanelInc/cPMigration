@@ -90,7 +90,7 @@ esac
 setup_remote(){
         control_panel=`$ssh root@sourceserver "if [ -e /usr/local/psa/version ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"`
 	if [ $control_panel -eq 'cpanel' ]; then :  # no need to bring over things if cPanel
-	elif [ $control_panel -eq 'plesk' ]; then
+	elif [ $control_panel -eq 'plesk' ]; then  # wget or curl from httpupdate
 	# What stuff do we send over?  What scripts need to be run in preparation?
 	elif [ $control_panel -eq 'ensim' ]; then
 	# What stuff do we send over?  What scripts need to be run in preparation?
