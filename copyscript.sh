@@ -88,31 +88,16 @@ esac
 }
 
 setup_remote(){
-# Usage will be setup_remote <type> after detection
-
-
-if [ $1 -eq "Plesk" ]
-	then
-
+        control_panel=`$ssh root@sourceserver "if [ -e /usr/local/psa/version ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"`
+	if [ $control_panel -eq 'cpanel' ]; then :  # no need to bring over things if cPanel
+	elif [ $control_panel -eq 'plesk' ]; then
 	# What stuff do we send over?  What scripts need to be run in preparation?
-
-	fi
-
-if [ $1 -eq "Ensim" ]
-	then
-
+	elif [ $control_panel -eq 'ensim' ]; then
 	# What stuff do we send over?  What scripts need to be run in preparation?
-
-	fi
-	
-if [ $1 -eq "Directadmin" ]
-	then
-
+	elif [ $control_panel -eq 'da' ]; then
 	# What stuff do we send over?  What scripts need to be run in preparation?
-
+	else echo 'your source control panel isn\'t supported at this time';exit
 	fi
-
-
 }
 
 #############################################
