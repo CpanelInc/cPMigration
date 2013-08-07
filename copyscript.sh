@@ -55,17 +55,17 @@ install_sshpass(){
 
 generate_accounts_list(){
 
-# grab source accounts list
-$scp root@$sourceserver:/etc/trueuserdomains $scripthome/.sourcetudomains
+	# grab source accounts list
+	$scp root@$sourceserver:/etc/trueuserdomains $scripthome/.sourcetudomains
 
-# sort source accounts list
-sort $scripthome/.sourcetudomains > $scripthome/.sourcedomains
+	# sort source accounts list
+	sort $scripthome/.sourcetudomains > $scripthome/.sourcedomains	
 
-# grab and sort local (destination) accounts list
-sort /etc/trueuserdomains > $scripthome/.destdomains
+	# grab and sort local (destination) accounts list
+	sort /etc/trueuserdomains > $scripthome/.destdomains
 
-# diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
-diff -y $scripthome/.sourcedomains $scripthome/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' | grep -v "cptkt" > $scripthome/.copyaccountlist
+	# diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :) 
+	diff -y $scripthome/.sourcedomains $scripthome/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' | grep -v "cptkt" > $scripthome/.copyaccountlist
 
 }
 
@@ -85,6 +85,34 @@ case "$1" in
 		logoutput=">> $logfile "
 		;;
 esac
+}
+
+setup_remote(){
+# Usage will be setup_remote <type> after detection
+
+
+if [ $1 -eq "Plesk" ]
+	then
+
+	# What stuff do we send over?  What scripts need to be run in preparation?
+
+	fi
+
+if [ $1 -eq "Ensim" ]
+	then
+
+	# What stuff do we send over?  What scripts need to be run in preparation?
+
+	fi
+	
+if [ $1 -eq "Directadmin" ]
+	then
+
+	# What stuff do we send over?  What scripts need to be run in preparation?
+
+	fi
+
+
 }
 
 #############################################
