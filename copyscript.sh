@@ -129,6 +129,13 @@ if [ $EUID -ne 0 ]; then
 	echo; exit
 fi
 
+# check for resolving sourceserver
+if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then :
+elif [[ -z $(dig $sourceserver +short) ]]; then
+        echo "$sourceserver does not appear to be resolving"
+        echo; exit 1
+fi
+
 
 #############################################
 ### options operators
