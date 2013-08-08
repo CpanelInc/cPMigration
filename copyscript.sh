@@ -101,6 +101,53 @@ setup_remote(){
 }
 
 
+process_loop(){
+        logfile="$scripthome/log/$epoch.log"
+        logoutput=">> $logfile "
+
+        # Override the normal accounts list if we're in Single user mode
+        if [ $singlemode -eq "1" ]; then
+                grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
+        fi
+
+        i=1
+        count=`cat $scripthome/.copyaccountlist | wc -l`
+
+        for user in `cat $scripthome/.copyaccountlist`; do
+                progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
+                echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
+
+                # Package accounts on source server (if set)
+                if [ $pkgaccounts == 1 ]; then
+                        echo "Packaging account on source server..."  > >(tee --append $logfile )
+                        $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
+                fi
+
+                # copy (scp) the cpmove file from the source to destination server
+                echo "Copying the package from source to destination..."  > >(tee --append $logfile )
+                $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile
+                # Remove cpmove from source server (if set)
+                if [ $removesourcepkgs == 1 ]; then
+                        echo "Removing the package from the source..."  > >(tee --append $logfile )
+                        $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"  >> $logfile
+                fi
+
+                # Restore package on the destination server (if set)
+                if [ $restorepkg == 1 ]; then
+                        echo "Restoring the package to the destination..."  > >(tee --append $logfile )
+                        /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
+                fi
+
+                # Remove cpmove from destination server (if set)
+                if [ $removedestpkgs == 1 ]; then
+                        echo "Removing the package from the destination..."  > >(tee --append $logfile )
+                        rm -fv /home/cpmove-$user.tar.gz         >> $logfile
+                fi
+                i=`expr $i + 1`
+        done
+}
+
+
 #############################################
 ### get options
 #############################################
@@ -138,23 +185,6 @@ fi
 
 
 #############################################
-### options operators
-#############################################
-
-# Package accounts on the source server
-pkgaccounts=1
-
-# Restore packages on the destination server
-restorepkg=1
-
-# Delete cpmove files from the source once transferred to the destination server
-removesourcepkgs=1
-
-# Delete cpmove files from the destination server once restored
-removedestpkgs=1
-
-
-#############################################
 ### Pre-Processing
 #############################################
 
@@ -188,49 +218,23 @@ set_logging_mode
 
 
 #############################################
-### Process loop
+### options operators
 #############################################
 
-logfile="$scripthome/log/$epoch.log"
-logoutput=">> $logfile "
+# Package accounts on the source server
+pkgaccounts=1
 
-# Override the normal accounts list if we're in Single user mode
-if [ $singlemode -eq "1" ]; then
-	grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
-fi
+# Restore packages on the destination server
+restorepkg=1
 
-i=1
-count=`cat $scripthome/.copyaccountlist | wc -l`
+# Delete cpmove files from the source once transferred to the destination server
+removesourcepkgs=1
 
-for user in `cat $scripthome/.copyaccountlist`; do
-	progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
-	echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
+# Delete cpmove files from the destination server once restored
+removedestpkgs=1
 
-	# Package accounts on source server (if set)
-	if [ $pkgaccounts == 1 ]; then
-		echo "Packaging account on source server..."  > >(tee --append $logfile )
-		$ssh root@$sourceserver "/scripts/pkgacct $user;exit"	>> $logfile 
-	fi
 
-	# copy (scp) the cpmove file from the source to destination server
-	echo "Copying the package from source to destination..."  > >(tee --append $logfile )
-	$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 
-	# Remove cpmove from source server (if set)
-	if [ $removesourcepkgs == 1 ]; then
-		echo "Removing the package from the source..."  > >(tee --append $logfile )
-		$ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"	 >> $logfile 
-	fi
-
-	# Restore package on the destination server (if set)
-	if [ $restorepkg == 1 ]; then
-		echo "Restoring the package to the destination..."  > >(tee --append $logfile )
-		/scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 
-	fi
-
-	# Remove cpmove from destination server (if set)
-	if [ $removedestpkgs == 1 ]; then
-		echo "Removing the package from the destination..."  > >(tee --append $logfile )
-		rm -fv /home/cpmove-$user.tar.gz	 >> $logfile 
-	fi		
-	i=`expr $i + 1`
-done
+#############################################
+### Process loop
+#############################################
+process_loop
