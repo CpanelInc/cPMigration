@@ -89,54 +89,59 @@ set_logging_mode(){
 }
 
 setup_remote(){
-        control_panel=`$ssh root@sourceserver "if [ -e /usr/local/psa/version ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"`
-	if [ $control_panel -eq 'cpanel' ]; then :  # no need to bring over things if cPanel#
-	elif [ $control_panel -eq 'plesk' ]; then  # wget or curl from httpupdate
+      $ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit" > $scripthome/.sourcetype
+		control_panel=`cat $scripthome/.sourcetype`
+		cat $scripthome/.sourcetype
+		echo "CONTROL PANEL: $control_panel"
+	if [[ $control_panel = "cpanel" ]]; then :  # no need to bring over things if cPanel#
+	elif [[ $control_panel = "plesk" ]]; then  # wget or curl from httpupdate
 		echo "The Source server is Plesk!"  > >(tee --append $logfile )
 		echo "Setting up scripts,  Updating user domains" 
-		$ssh root@sourceserver "
-		if [ ! -d /scripts ] ; then ; mkdir /scripts ;fi; 
-		if [ ! -f /scripts/pkgacct ] ; then ; 
+		$ssh root@$sourceserver "
+		if [[ ! -d /scripts ]]; then 
+		mkdir /scripts ;fi; 
+		if [[ ! -f /scripts/pkgacct ]]; then 
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-pXa -P /scripts;
-		mv /scripts/pkgacct-pXa /script/pkgacct;
-		chmod 755 /script/pkgacct
+		mv /scripts/pkgacct-pXa /scripts/pkgacct;
+		chmod 755 /scripts/pkgacct
 		fi;
-		if [ ! -f /scripts/updateuserdomains-universal ] ; then ;
-		http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
-		chmod 755 /script/updateuserdomains-universal;
+		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
-	elif [ $control_panel -eq 'ensim' ]; then
+	elif [[ $control_panel = "ensim" ]]; then
 		echo "The Source server is Ensim!"  > >(tee --append $logfile )
 		echo "Setting up scripts,  Updating user domains" 
-		$ssh root@sourceserver "
-		if [ ! -d /scripts ] ; then ; mkdir /scripts ;fi; 
-		if [ ! -f /scripts/pkgacct ] ; then ; 
+		$ssh root@$sourceserver "
+		if [[ ! -d /scripts ]]; then 
+		mkdir /scripts ;fi; 
+		if [[ ! -f /scripts/pkgacct ]]; then 
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-enXim -P /scripts;
-		mv /scripts/pkgacct-enXim /script/pkgacct;
-		chmod 755 /script/pkgacct
+		mv /scripts/pkgacct-enXim /scripts/pkgacct;
+		chmod 755 /scripts/pkgacct
 		fi;
-		if [ ! -f /scripts/updateuserdomains-universal ] ; then ;
-		http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
-		chmod 755 /script/updateuserdomains-universal;
+		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
-	elif [ $control_panel -eq 'da' ]; then
+	elif [[ $control_panel = "da" ]]; then
 		echo "The Source server is Direct Admin!"  > >(tee --append $logfile )
 		echo "Setting up scripts,  Updating user domains" 
-		$ssh root@sourceserver "
-		if [ ! -d /scripts ] ; then ; mkdir /scripts ;fi; 
-		if [ ! -f /scripts/pkgacct ] ; then ; 
+		$ssh root@$sourceserver "
+		if [[ ! -d /scripts ]]; then 
+		mkdir /scripts ;fi; 
+		if [[ ! -f /scripts/pkgacct ]]; then 
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-dXa -P /scripts;
-		mv /scripts/pkgacct-dXa /script/pkgacct;
-		chmod 755 /script/pkgacct
+		mv /scripts/pkgacct-dXa /scripts/pkgacct;
+		chmod 755 /scripts/pkgacct
 		fi;
-		if [ ! -f /scripts/updateuserdomains-universal ] ; then ;
-		http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
-		chmod 755 /script/updateuserdomains-universal;
+		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
-	else echo 'your source control panel isnt supported at this time' ; exit
 	fi
 }
 
@@ -249,6 +254,9 @@ mkdir_ifneeded $scripthome/log
 
 # Define epoch time
 epoch=`date +%s`
+
+#Setup Remote Server
+setup_remote
 
 # Generate accounts list
 generate_accounts_list
