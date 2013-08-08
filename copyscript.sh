@@ -41,6 +41,7 @@ print_help(){
 	echo 'optional:'
 	echo '-a <username or domain>, single account mode'
 	echo '-p sourceport'
+        echo '-k keep archives on both servers'
 	echo '-h displays this dialogue'
 	echo; echo; exit 1
 }
@@ -145,7 +146,7 @@ process_loop(){
         logoutput=">> $logfile "
 
         # Override the normal accounts list if we're in Single user mode
-        if [ $singlemode -eq "1" ]; then
+        if [[ $singlemode -eq "1" ]]; then
                 grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
         fi
 
@@ -156,29 +157,28 @@ process_loop(){
                 progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
                 echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
 
-                # Package accounts on source server (if set)
-                if [ $pkgaccounts == 1 ]; then
-                        echo "Packaging account on source server..."  > >(tee --append $logfile )
-                        $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
-                fi
+                # Package accounts on source server
+                echo "Packaging account on source server..."  > >(tee --append $logfile )
+                $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
 
                 # copy (scp) the cpmove file from the source to destination server
                 echo "Copying the package from source to destination..."  > >(tee --append $logfile )
                 $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile
+
                 # Remove cpmove from source server (if set)
-                if [ $removesourcepkgs == 1 ]; then
+                if [[ $keeparchives == 1 ]]; then :
+		else
                         echo "Removing the package from the source..."  > >(tee --append $logfile )
                         $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"  >> $logfile
                 fi
 
                 # Restore package on the destination server (if set)
-                if [ $restorepkg == 1 ]; then
-                        echo "Restoring the package to the destination..."  > >(tee --append $logfile )
-                        /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
-                fi
+                echo "Restoring the package to the destination..."  > >(tee --append $logfile )
+                /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
 
                 # Remove cpmove from destination server (if set)
-                if [ $removedestpkgs == 1 ]; then
+                if [[ $keeparchives == 1 ]]; then :
+		else
                         echo "Removing the package from the destination..."  > >(tee --append $logfile )
                         rm -fv /home/cpmove-$user.tar.gz         >> $logfile
                 fi
@@ -191,11 +191,12 @@ process_loop(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:h" opt; do
+while getopts ":s:p:a:kh" opt; do
 	case $opt in
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
+                k) keeparchives=1;;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
@@ -254,23 +255,6 @@ generate_accounts_list
 
 # Set logging mode
 set_logging_mode
-
-
-#############################################
-### options operators
-#############################################
-
-# Package accounts on the source server
-pkgaccounts=1
-
-# Restore packages on the destination server
-restorepkg=1
-
-# Delete cpmove files from the source once transferred to the destination server
-removesourcepkgs=1
-
-# Delete cpmove files from the destination server once restored
-removedestpkgs=1
 
 
 #############################################
