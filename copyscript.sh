@@ -148,11 +148,12 @@ process_loop(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:h" opt; do
+while getopts ":s:p:a:kh" opt; do
 	case $opt in
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
+                k) removesourcepkgs=1; removesourcepkgs=1;;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
@@ -211,17 +212,6 @@ generate_accounts_list
 
 # Set logging mode
 set_logging_mode
-
-
-#############################################
-### options operators
-#############################################
-
-# Delete cpmove files from the source once transferred to the destination server
-removesourcepkgs=1
-
-# Delete cpmove files from the destination server once restored
-removedestpkgs=1
 
 
 #############################################
