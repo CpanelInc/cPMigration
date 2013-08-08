@@ -245,7 +245,7 @@ if [[ $sourceport != '' ]]; then  # [todo] check into more elegant solution
 	ssh="$sshpass ssh -p $sourceport -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 	scp="$sshpass scp -P $sourceport"
 else
-	ssh="$sshpass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+	ssh="$sshpass ssh -o StrictHostKeyChecking=no"
 	scp="$sshpass scp"
 fi
 
