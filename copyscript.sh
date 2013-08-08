@@ -31,20 +31,6 @@ print_intro(){
 	echo "version $VERSION"
 }
 
-<<<<<<< HEAD
-print_help() {
-    echo 'usage:'
-    echo './copyscript -s sourceserver'
-    echo
-    echo 'required:' 
-    echo '-s sourceserver (hostname or ip)'
-    echo
-    echo 'optional:'
-    echo '-a <username or domain>,  single account mode'
-    echo '-p sourceport'
-    echo '-h displays this dialogue'
-    echo;exit 1
-=======
 print_help(){
 	echo 'usage:'
 	echo './copyscript -s <hostname or ip>'
@@ -58,7 +44,6 @@ print_help(){
         echo '-k keep archives on both servers'
 	echo '-h displays this dialogue'
 	echo; echo; exit 1
->>>>>>> DEVELOPMENT
 }
 
 install_sshpass(){
@@ -231,22 +216,9 @@ if [[ $# -eq 0 || -z $sourceserver ]]; then print_help; fi  # check for existenc
 #############################################
 
 # check for root
-<<<<<<< HEAD
-if [ $EUID -ne 0 ];then
-    echo 'copyscript must be run as root'
-    echo;exit 1
-fi
-
-# check for resolving sourceserver
-if [[ $sourceserver =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]];then :
-elif [[ -z $(dig $sourceserver +short) ]];then
-    echo "$sourceserver does not appear to be resolving"
-    echo;exit 1
-=======
 if [ $EUID -ne 0 ]; then
 	echo 'copyscript must be run as root'
 	echo; exit
->>>>>>> DEVELOPMENT
 fi
 
 # check for resolving sourceserver
