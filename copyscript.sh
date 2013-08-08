@@ -41,6 +41,7 @@ print_help(){
 	echo 'optional:'
 	echo '-a <username or domain>, single account mode'
 	echo '-p sourceport'
+        echo '-k keep archives on both servers'
 	echo '-h displays this dialogue'
 	echo; echo; exit 1
 }
@@ -124,8 +125,10 @@ process_loop(){
                 # copy (scp) the cpmove file from the source to destination server
                 echo "Copying the package from source to destination..."  > >(tee --append $logfile )
                 $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile
+
                 # Remove cpmove from source server (if set)
-                if [[ $removesourcepkgs == 1 ]]; then
+                if [[ $keeparchives == 1 ]]; then :
+		else
                         echo "Removing the package from the source..."  > >(tee --append $logfile )
                         $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"  >> $logfile
                 fi
@@ -135,7 +138,8 @@ process_loop(){
                 /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
 
                 # Remove cpmove from destination server (if set)
-                if [[ $removedestpkgs == 1 ]]; then
+                if [[ $keeparchives == 1 ]]; then :
+		else
                         echo "Removing the package from the destination..."  > >(tee --append $logfile )
                         rm -fv /home/cpmove-$user.tar.gz         >> $logfile
                 fi
@@ -153,7 +157,7 @@ while getopts ":s:p:a:kh" opt; do
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
-                k) removesourcepkgs=1; removesourcepkgs=1;;
+                k) keeparchives=1;;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
