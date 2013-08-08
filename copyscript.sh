@@ -117,11 +117,9 @@ process_loop(){
                 progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
                 echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
 
-                # Package accounts on source server (if set)
-                if [ $pkgaccounts == 1 ]; then
-                        echo "Packaging account on source server..."  > >(tee --append $logfile )
-                        $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
-                fi
+                # Package accounts on source server
+                echo "Packaging account on source server..."  > >(tee --append $logfile )
+                $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
 
                 # copy (scp) the cpmove file from the source to destination server
                 echo "Copying the package from source to destination..."  > >(tee --append $logfile )
@@ -133,10 +131,8 @@ process_loop(){
                 fi
 
                 # Restore package on the destination server (if set)
-                if [ $restorepkg == 1 ]; then
-                        echo "Restoring the package to the destination..."  > >(tee --append $logfile )
-                        /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
-                fi
+                echo "Restoring the package to the destination..."  > >(tee --append $logfile )
+                /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
 
                 # Remove cpmove from destination server (if set)
                 if [ $removedestpkgs == 1 ]; then
@@ -220,12 +216,6 @@ set_logging_mode
 #############################################
 ### options operators
 #############################################
-
-# Package accounts on the source server
-pkgaccounts=1
-
-# Restore packages on the destination server
-restorepkg=1
 
 # Delete cpmove files from the source once transferred to the destination server
 removesourcepkgs=1
