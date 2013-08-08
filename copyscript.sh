@@ -106,7 +106,7 @@ process_loop(){
         logoutput=">> $logfile "
 
         # Override the normal accounts list if we're in Single user mode
-        if [ $singlemode -eq "1" ]; then
+        if [[ $singlemode -eq "1" ]]; then
                 grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
         fi
 
@@ -125,7 +125,7 @@ process_loop(){
                 echo "Copying the package from source to destination..."  > >(tee --append $logfile )
                 $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile
                 # Remove cpmove from source server (if set)
-                if [ $removesourcepkgs == 1 ]; then
+                if [[ $removesourcepkgs == 1 ]]; then
                         echo "Removing the package from the source..."  > >(tee --append $logfile )
                         $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"  >> $logfile
                 fi
@@ -135,7 +135,7 @@ process_loop(){
                 /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
 
                 # Remove cpmove from destination server (if set)
-                if [ $removedestpkgs == 1 ]; then
+                if [[ $removedestpkgs == 1 ]]; then
                         echo "Removing the package from the destination..."  > >(tee --append $logfile )
                         rm -fv /home/cpmove-$user.tar.gz         >> $logfile
                 fi
