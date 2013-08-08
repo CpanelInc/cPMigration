@@ -242,10 +242,10 @@ fi
 read -s -p "Enter Source server's root password:" SSHPASSWORD
 sshpass="$scripthome/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
 if [[ $sourceport != '' ]]; then  # [todo] check into more elegant solution
-	ssh="$sshpass ssh -p $sourceport"
+	ssh="$sshpass ssh -p $sourceport -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 	scp="$sshpass scp -P $sourceport"
 else
-	ssh="$sshpass ssh"
+	ssh="$sshpass ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 	scp="$sshpass scp"
 fi
 
