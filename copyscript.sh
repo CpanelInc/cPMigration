@@ -29,6 +29,7 @@ scripthome="/root/.copyscript"
 print_intro(){
 	echo 'copyscript'
 	echo "version $VERSION"
+        echo
 }
 
 print_help(){
@@ -47,16 +48,19 @@ print_help(){
 }
 
 install_sshpass(){
+        echo 'Installing sshpass...'
 	mkdir_ifneeded $scripthome/.sshpass
-	cd $scripthome/.sshpass
-	wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz
-	tar -zxvf $scripthome/.sshpass/sshpass-1.05.tar.gz -C $scripthome/.sshpass/
+	cd $scripthome/.sshpass 
+	wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz  
+	tar -zxvf $scripthome/.sshpass/sshpass-1.05.tar.gz -C $scripthome/.sshpass/ 
 	cd $scripthome/.sshpass/sshpass-1.05/
-	./configure
- 	make
+	./configure 
+ 	make 
+        echo; echo
 }
 
 generate_accounts_list(){
+        echo 'Generating accounts lists...'
 	# grab source accounts list
 	$scp root@$sourceserver:/etc/trueuserdomains $scripthome/.sourcetudomains
 
@@ -80,7 +84,7 @@ set_logging_mode(){
 	logfile="$scripthome/log/$epoch.log"
 	case "$1" in
 		verbose)
-			logoutput="> >(tee --append $logfile )"
+			logoutput="&> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))"
 			;;
 		*)
 			logoutput=">> $logfile "
@@ -89,14 +93,15 @@ set_logging_mode(){
 }
 
 setup_remote(){
-      $ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit" > $scripthome/.sourcetype
-		control_panel=`cat $scripthome/.sourcetype`
-		cat $scripthome/.sourcetype
-		echo "CONTROL PANEL: $control_panel"
+        echo -n 'Checking remote server control panel: '
+	$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit" > $scripthome/.sourcetype
+	control_panel=`cat $scripthome/.sourcetype`
+	cat $scripthome/.sourcetype
+	#echo "CONTROL PANEL: $control_panel"
 	if [[ $control_panel = "cpanel" ]]; then :  # no need to bring over things if cPanel#
 	elif [[ $control_panel = "plesk" ]]; then  # wget or curl from httpupdate
-		echo "The Source server is Plesk!"  > >(tee --append $logfile )
-		echo "Setting up scripts,  Updating user domains" 
+		echo "The Source server is Plesk!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "Setting up scripts, Updating user domains" >d >(tee --append $logfile )
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
@@ -109,10 +114,10 @@ setup_remote(){
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
-		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
+		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
 	elif [[ $control_panel = "ensim" ]]; then
-		echo "The Source server is Ensim!"  > >(tee --append $logfile )
-		echo "Setting up scripts,  Updating user domains" 
+		echo "The Source server is Ensim!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
@@ -125,10 +130,10 @@ setup_remote(){
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
-		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
+		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
 	elif [[ $control_panel = "da" ]]; then
-		echo "The Source server is Direct Admin!"  > >(tee --append $logfile )
-		echo "Setting up scripts,  Updating user domains" 
+		echo "The Source server is Direct Admin!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
@@ -141,7 +146,7 @@ setup_remote(){
 		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
-		/scripts/updateuserdomains-universal;"  > >(tee --append $logfile )
+		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
 	fi
 }
 
@@ -157,35 +162,34 @@ process_loop(){
 
         i=1
         count=`cat $scripthome/.copyaccountlist | wc -l`
-
+        
         for user in `cat $scripthome/.copyaccountlist`; do
                 progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
-                echo Processing account $user.  $i/$count \($progresspercent% Completed\) > >(tee --append $logfile )
-
-                # Package accounts on source server
-                echo "Packaging account on source server..."  > >(tee --append $logfile )
-                $ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
+                echo -en "\E[31;40m#@0# \E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                sleep 1;
+                echo -en "\E[31;40m#@1# \E[40;34mPackaging account on source server...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+					$ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
 
                 # copy (scp) the cpmove file from the source to destination server
-                echo "Copying the package from source to destination..."  > >(tee --append $logfile )
-                $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile
+                echo -en "\E[31;40m#@2# \E[40;34mCopying the package from source to destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 2>&1
 
                 # Remove cpmove from source server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo "Removing the package from the source..."  > >(tee --append $logfile )
-                        $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit"  >> $logfile
+                        echo -en "\E[31;40m#@3# \E[40;34mRemoving the package from the source...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit" >> $logfile 2>&1
                 fi
 
                 # Restore package on the destination server (if set)
-                echo "Restoring the package to the destination..."  > >(tee --append $logfile )
-                /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile
+                echo -en "\E[31;40m#@4# \E[40;34mRestoring the package to the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 2>&1
 
                 # Remove cpmove from destination server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo "Removing the package from the destination..."  > >(tee --append $logfile )
-                        rm -fv /home/cpmove-$user.tar.gz         >> $logfile
+                        echo -en "\E[31;40m#@5# \E[40;34mRemoving the package from the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
                 fi
                 i=`expr $i + 1`
         done
@@ -233,13 +237,16 @@ fi
 ### Pre-Processing
 #############################################
 
+# print into
+print_intro
+
 # install sshpass
 if [ ! -f $scripthome/.sshpass/sshpass-1.05/sshpass ]; then
 	install_sshpass
 fi
 
 # set SSH/SCP commands
-read -s -p "Enter Source server's root password:" SSHPASSWORD
+read -s -p "Enter source ($sourceserver) root password: " SSHPASSWORD; echo
 sshpass="$scripthome/.sshpass/sshpass-1.05/sshpass -p $SSHPASSWORD"
 if [[ $sourceport != '' ]]; then  # [todo] check into more elegant solution
 	ssh="$sshpass ssh -p $sourceport -o StrictHostKeyChecking=no"
