@@ -51,7 +51,7 @@ install_sshpass(){
         echo 'Installing sshpass...'
 	mkdir_ifneeded $scripthome/.sshpass
 	cd $scripthome/.sshpass 
-	wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz 
+	wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz  
 	tar -zxvf $scripthome/.sshpass/sshpass-1.05.tar.gz -C $scripthome/.sshpass/ 
 	cd $scripthome/.sshpass/sshpass-1.05/
 	./configure 
@@ -165,30 +165,30 @@ process_loop(){
         
         for user in `cat $scripthome/.copyaccountlist`; do
                 progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
-                echo -en "\E[40;32m################ \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[31;40m#@0# \E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
                 sleep 1;
-                echo -en "\E[40;34mPackaging account on source server...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[31;40m#@1# \E[40;34mPackaging account on source server...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
 					$ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
 
                 # copy (scp) the cpmove file from the source to destination server
-                echo -en "\E[40;34mCopying the package from source to destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[31;40m#@2# \E[40;34mCopying the package from source to destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
                 $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 2>&1
 
                 # Remove cpmove from source server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo -en "\E[40;34mRemoving the package from the source...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        echo -en "\E[31;40m#@3# \E[40;34mRemoving the package from the source...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
                         $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit" >> $logfile 2>&1
                 fi
 
                 # Restore package on the destination server (if set)
-                echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[31;40m#@4# \E[40;34mRestoring the package to the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
                 /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 2>&1
 
                 # Remove cpmove from destination server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo -en "\E[40;34mRemoving the package from the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        echo -en "\E[31;40m#@5# \E[40;34mRemoving the package from the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
                         rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
                 fi
                 i=`expr $i + 1`
