@@ -5,6 +5,7 @@ copyscript is a tool created to streamline the manual migration process, moving 
 
 ### usage
 
+<code>
 ./copyscript -s <hostname or ip>
         
 required:
@@ -15,4 +16,4 @@ optional:
 -p sourceport
 -k keep archives on both servers
 -h displays this dialogue
-
+</code>
