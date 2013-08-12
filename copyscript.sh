@@ -40,9 +40,10 @@ print_help(){
 	echo '-s <hostname or ip>, sourceserver'
 	echo
 	echo 'optional:'
-	echo '-a <username or domain>, single account mode'
+	echo '-a <username or domain>, specify single account'
+	echo '-l <filename>,  Read accounts from list'
 	echo '-p sourceport'
-        echo '-k keep archives on both servers'
+	echo '-k keep archives on both servers'
 	echo '-h displays this dialogue'
 	echo; echo; exit 1
 }
@@ -101,7 +102,7 @@ setup_remote(){
 	if [[ $control_panel = "cpanel" ]]; then :  # no need to bring over things if cPanel#
 	elif [[ $control_panel = "plesk" ]]; then  # wget or curl from httpupdate
 		echo "The Source server is Plesk!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
-		echo "Setting up scripts, Updating user domains" >d >(tee --append $logfile )
+		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
@@ -159,6 +160,14 @@ process_loop(){
         if [[ $singlemode -eq "1" ]]; then
                 grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
         fi
+        
+        if [[ $listmode -eq "1" ]]; then
+                echo > $scripthome/.copyaccountlist
+                for targetaccount in `cat $listfile`
+                do
+                        grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' >> $scripthome/.copyaccountlist;
+                done
+        fi
 
         i=1
         count=`cat $scripthome/.copyaccountlist | wc -l`
@@ -200,12 +209,13 @@ process_loop(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:kh" opt; do
+while getopts ":s:p:a:l:kh" opt; do
 	case $opt in
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
-                k) keeparchives=1;;
+        	l) listmode="1"; listfile="$OPTARG";;
+        	k) keeparchives=1;;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
