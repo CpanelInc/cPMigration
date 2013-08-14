@@ -177,7 +177,7 @@ process_loop(){
                 echo "################################################################" >> $logfile
                 echo "################################################################" >> $logfile
                 echo "################################################################" >> $logfile
-                echo "#@B# BEGIN $user $i/$count" >> $logfile          
+                echo "#@B# $user BEGIN $i/$count" >> $logfile          
                 sleep 1;
                 echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
                 #Adding a log marker
@@ -214,10 +214,46 @@ process_loop(){
                         rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
                 fi
                 i=`expr $i + 1`
-                echo "#@E# END $user" >> $logfile
+                echo "#@E# $user END" >> $logfile
         done
 }
 
+#############################################
+### function error_check
+#############################################
+### This function checks the last segment of
+### the logs for known errors.  It also looks
+### for fail/bailout conditions
+#############################################
+error_check(){
+userid=`echo $logsegment | head -1 | awk {'print $2'}
+segment=`echo $logsegment | head -1 | awk {'print $1'}`
+
+if [[ $segment -eq "#@1#" ]]; then
+	
+	
+	#PHASE 1 - Packaging account
+	elif [[ $segment -eq "#@1#" ]] ; then
+		#Critical checks
+	
+	   #Error checks
+	   
+	   #Warning checks
+	   
+	#PHASE 2 - Transferring account
+	elif [[ $segment -eq "#@2#" ]] ; then
+   #PHASE 3 - Remove Package from source
+	elif [[ $segment -eq "#@3#" ]] ; then
+	#PHASE 4 - Rstoring account
+	elif [[ $segment -eq "#@4#" ]] ; then
+	#PHASE 5 - Remove package from destination
+	elif [[ $segment -eq "#@6#" ]] ; then
+
+
+fi
+
+
+}
 
 #############################################
 ### get options
