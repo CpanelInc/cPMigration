@@ -175,7 +175,9 @@ process_loop(){
                 echo -en "\E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n"
                 #Adding a log marker
                 echo "################################################################" >> $logfile
-                echo "#@0# $user - Processing $user $i/$count" >> $logfile          
+                echo "################################################################" >> $logfile
+                echo "################################################################" >> $logfile
+                echo "#@B# BEGIN $user - Begin $user $i/$count" >> $logfile          
                 sleep 1;
                 echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
                 #Adding a log marker
@@ -212,6 +214,7 @@ process_loop(){
                         rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
                 fi
                 i=`expr $i + 1`
+                echo "#@E# END $user" >> $logfile
         done
 }
 
