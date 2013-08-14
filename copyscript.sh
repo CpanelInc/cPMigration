@@ -177,7 +177,7 @@ process_loop(){
                 echo "################################################################" >> $logfile
                 echo "################################################################" >> $logfile
                 echo "################################################################" >> $logfile
-                echo "#@B# BEGIN $user - Begin $user $i/$count" >> $logfile          
+                echo "#@B# BEGIN $user $i/$count" >> $logfile          
                 sleep 1;
                 echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
                 #Adding a log marker
