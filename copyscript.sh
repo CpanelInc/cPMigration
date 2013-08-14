@@ -63,7 +63,7 @@ install_sshpass(){
 generate_accounts_list(){
         echo 'Generating accounts lists...'
 	# grab source accounts list
-	$scp root@$sourceserver:/etc/trueuserdomains $scripthome/.sourcetudomains
+	$scp root@$sourceserver:/etc/trueuserdomains $scripthome/.sourcetudomains >> $logfile 2>&1
 
 	# sort source accounts list
 	sort $scripthome/.sourcetudomains > $scripthome/.sourcedomains	
@@ -94,12 +94,10 @@ set_logging_mode(){
 }
 
 setup_remote(){
-        echo -n 'Checking remote server control panel: '
-	$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit" > $scripthome/.sourcetype
-	control_panel=`cat $scripthome/.sourcetype`
-	cat $scripthome/.sourcetype
+   control_panel=`$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"` >> $logfile 2>&1
+	#echo "Checking remote server control panel: $control_panel" 
 	#echo "CONTROL PANEL: $control_panel"
-	if [[ $control_panel = "cpanel" ]]; then :  # no need to bring over things if cPanel#
+	if [[ $control_panel = "cpanel" ]]; then : echo "Source is cPanel,  nothing special to do"  # no need to bring over things if cPanel#
 	elif [[ $control_panel = "plesk" ]]; then  # wget or curl from httpupdate
 		echo "The Source server is Plesk!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
 		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
@@ -174,30 +172,43 @@ process_loop(){
         
         for user in `cat $scripthome/.copyaccountlist`; do
                 progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
-                echo -en "\E[31;40m#@0# \E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n"
+                #Adding a log marker
+                echo "################################################################" >> $logfile
+                echo "#@0# $user - Processing $user $i/$count" >> $logfile          
                 sleep 1;
-                echo -en "\E[31;40m#@1# \E[40;34mPackaging account on source server...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
-					$ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile
+                echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
+                #Adding a log marker
+                echo "#@1# $user - Packaging on Source" >> $logfile     
+					$ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile 2>&1
 
-                # copy (scp) the cpmove file from the source to destination server
-                echo -en "\E[31;40m#@2# \E[40;34mCopying the package from source to destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                # copy (scp) the cpmove file from the source to destination servcd /er
+                echo -en "\E[40;34mCopying the package from source to destination...\E[0m \n" 
+                #Adding a log marker
+                echo "#@2# $user - Transferring package Destination < Source" >> $logfile      
                 $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 2>&1
 
                 # Remove cpmove from source server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo -en "\E[31;40m#@3# \E[40;34mRemoving the package from the source...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        echo -en "\E[40;34mRemoving the package from the source...\E[0m \n"
+                        #Adding a log marker
+                        echo "#@3# $user - Remove package from Source" >> $logfile     
                         $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit" >> $logfile 2>&1
                 fi
 
                 # Restore package on the destination server (if set)
-                echo -en "\E[31;40m#@4# \E[40;34mRestoring the package to the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"
+                #Adding a log marker
+                echo "#@4# $user - Restoring package" >> $logfile     
                 /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 2>&1
 
                 # Remove cpmove from destination server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
-                        echo -en "\E[31;40m#@5# \E[40;34mRemoving the package from the destination...\E[0m \n"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+                        echo -en "\E[40;34mRemoving the package from the destination...\E[0m \n"
+                        #Adding a log marker
+                        echo "#@5# $user - Remove package from Destination" >> $logfile     
                         rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
                 fi
                 i=`expr $i + 1`
@@ -272,14 +283,14 @@ mkdir_ifneeded $scripthome/log
 # Define epoch time
 epoch=`date +%s`
 
+# Set logging mode
+set_logging_mode
+
 #Setup Remote Server
 setup_remote
 
 # Generate accounts list
 generate_accounts_list
-
-# Set logging mode
-set_logging_mode
 
 
 #############################################
