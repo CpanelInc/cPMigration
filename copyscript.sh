@@ -2,7 +2,7 @@
 # Original version written by Phil Stark
 # Maintained and updated by Phil Stark and Blaine Motsinger
 #
-VERSION="1.0.18"
+VERSION="1.0.19"
 scripthome="/root/.copyscript"
 #
 # Purpose:  to find all accounts existing on the Source server that do not exist
