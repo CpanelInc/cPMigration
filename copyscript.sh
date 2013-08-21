@@ -180,94 +180,119 @@ process_loop(){
                 sleep 1;
                 echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
                 #Adding a log marker
-                logcheck=""
-                logcheck="$logcheck `echo '#@1# $user - Packaging on Source' &> >(tee --append $logfile)`"
+                logcheck="$logcheck `echo \"#@1# $user - Packaging on Source\" &> >(tee --append $logfile)`"
 				logcheck="$logcheck `$ssh root@$sourceserver \"/scripts/pkgacct $user;exit\" &> >(tee --append $logfile)`"
-                error_check $logcheck
+                error_check
 
 
                 # copy (scp) the cpmove file from the source to destination servcd /er
                 
                 echo -en "\E[40;34mCopying the package from source to destination...\E[0m \n" 
                 #Adding a log marker
-                logcheck=""
-                logcheck="$logcheck `echo '#@2# $user - Transferring package Destination < Source' &> >(tee --append $logfile)`"
+                logcheck="$logcheck `echo \"#@2# $user - Transferring package Destination < Source\" &> >(tee --append $logfile)`"
                 logcheck="$logcheck `$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ &> >(tee --append $logfile)`"
-                error_check $logcheck
+                error_check
 
                 # Remove cpmove from source server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
                         echo -en "\E[40;34mRemoving the package from the source...\E[0m \n"
                         #Adding a log marker
-                        logcheck=""
-                        logcheck="$logcheck `echo '#@3# $user - Remove package from Source' &> >(tee --append $logfile)`"
+                        logcheck="$logcheck `echo \"#@3# $user - Remove package from Source\" &> >(tee --append $logfile)`"
                         logcheck="$logcheck `$ssh root@$sourceserver 'rm -f /home/cpmove-$user.tar.gz ;exit' &> >(tee --append $logfile)`"
-                        error_check $logcheck
+                        error_check
                 fi
 
 
                 # Restore package on the destination server (if set)
                 echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"
                 #Adding a log marker
-                logcheck=""
-                logcheck="$logcheck `echo '#@4# $user - Restoring package' &> >(tee --append $logfile)`"
+                logcheck="$logcheck `echo \"#@4# $user - Restoring package\" &> >(tee --append $logfile)`"
                 logcheck="$logcheck `/scripts/restorepkg /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
-                error_check $logcheck
+                error_check
 
                 # Remove cpmove from destination server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
                         echo -en "\E[40;34mRemoving the package from the destination...\E[0m \n"
                         #Adding a log marker
-                        logcheck=""
-                        logcheck="$logcheck `echo '#@5# $user - Remove package from Destination' &> >(tee --append $logfile)`"    
+                        logcheck="$logcheck `echo \"#@5# $user - Remove package from Destination\" &> >(tee --append $logfile)`"    
                         logcheck="$logcheck `rm -fv /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
+                        error_check
                 fi
                 i=`expr $i + 1`
                 echo "#@E# $user END" >> $logfile
         done
 }
 
-#############################################
-### function error_check
-#############################################
-### This function checks the last segment of
-### the logs for known errors.  It also looks
-### for fail/bailout conditions
-#############################################
-error_check(){
-#logsegment=$1
-#userid=`echo $logsegment | head -1 | awk {'print $2'}`
-#segment=`echo $logsegment | head -1 | awk {'print $1'}`
-#
-#if [[ $segment -eq "#@1#" ]]; then
-#	echo $1
-#
-#	#PHASE 1 - Packaging account
-#	elif [[ $segment -eq "#@1#" ]] ; then
-#		#Critical checks
-#
-#	   #Error checks
-##	   #Warning checks
-#	   	echo $1
-#	#PHASE 2 - Transferring account
-#	elif [[ $segment -eq "#@2#" ]] ; then
-#	echo $1
-#   #PHASE 3 - Remove Package from source
-#	elif [[ $segment -eq "#@3#" ]] ; then
-#	echo $1
-#	#PHASE 4 - Rstoring account
-#	elif [[ $segment -eq "#@4#" ]] ; then
-#	echo $1
-#	#PHASE 5 - Remove package from destination
-#	elif [[ $segment -eq "#@6#" ]] ; then
-#	echo $1
-#
-#fi
-#echo "$logcheck"
+        #############################################
+        ### function error_check
+        #############################################
+        ### This function checks the last segment of
+        ### the logs for known errors.  It also looks
+        ### for fail/bailout conditions
+        #############################################
+        error_check(){
+        userid="`echo $logcheck | head -1 | awk {'print $2'}`"
+        segment="`echo $logcheck | head -1 | awk {'print $1'}`"
 
+
+        # GLOBAL CHECKS
+        ####################
+        #Critical checks
+        ####################
+        criticals="`echo \"$logcheck\" | egrep "Critical error strings here"`"
+                if [[ ! $criticals == "" ]]; then
+                    echo -en "\E[30;41m Critical error(s) detected!\E[0m \n"
+            echo "######!!!!! Critical error(s) detected! !!!!!#####" >> $logfile
+            echo "$criticals" > >(tee --append $logfile)
+            echo -en "\E[30;41m cP Migrations is bailing out \E[0m \n"
+            exit
+        fi
+        ####################
+        #Error checks
+        ####################
+        errors="`echo \"$logcheck\" | egrep \"error|Error\"`"
+        if [[ ! $errors == "" ]]; then
+            echo -en "\E[40;31m Error(s) detected!\E[0m \n"
+            echo "###### Error(s) detected! #####" >> $logfile
+            echo "$errors" > >(tee --append $logfile)
+            echo "cP Migrations is skipping further processing of $userid"
+            stopcurrentuser="1"
+            failedusers="$failedusers $userid"
+        fi
+        ####################
+        #Warning checks
+        ####################
+        warnings="`echo \"$logcheck\" | egrep \"Warning|warning\"`"
+        if [[ ! $errors == "" ]]; then
+            echo -en "\E[40;35m Warning(s) detected!\E[0m \n"
+            echo "###### Warnings(s) detected! #####" >> $logfile
+            echo "$warnings" > >(tee --append $logfile)
+            warnusers="$warnusers $userid"
+        fi
+
+        #Phase Specific Checks
+        	#PHASE 1 - Packaging account
+            if [ $segment == '#@1#' ] ; then
+            echo > /dev/null
+        	#PHASE 2 - Transferring account
+        	elif [ $segment = "#@2#" ] ; then
+        	echo > /dev/null
+           #PHASE 3 - Remove Package from source
+        	elif [ $segment = "#@3#" ] ; then
+        	echo > /dev/null
+        	#PHASE 4 - Rstoring account
+        	elif [ $segment = "#@4#" ] ; then
+        	echo > /dev/null
+        	#PHASE 5 - Remove package from destination
+        	elif [ $segment = "#@6#" ] ; then
+        	echo > /dev/null
+
+        fi
+        logcheck=""
 }
+### END FUNCTION error_check
 
 #############################################
 ### get options
@@ -345,6 +370,9 @@ setup_remote
 # Generate accounts list
 generate_accounts_list
 
+# initiate variables
+failedusers=""
+warnusers=""
 
 #############################################
 ### Process loop
