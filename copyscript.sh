@@ -151,8 +151,7 @@ setup_remote(){
 
 
 process_loop(){
-        logfile="$scripthome/log/$epoch.log"
-        logoutput=">> $logfile "
+        logfile="$scripthome/log/`date +%Y-%m-%y`-$epoch.log"
 
         # Override the normal accounts list if we're in Single user mode
         if [[ $singlemode -eq "1" ]]; then
@@ -181,37 +180,49 @@ process_loop(){
                 sleep 1;
                 echo -en "\E[40;34mPackaging account on source server...\E[0m \n"
                 #Adding a log marker
-                echo "#@1# $user - Packaging on Source" >> $logfile     
-					$ssh root@$sourceserver "/scripts/pkgacct $user;exit"   >> $logfile 2>&1
+                logcheck=""
+                logcheck="$logcheck `echo '#@1# $user - Packaging on Source' &> >(tee --append $logfile)`"
+				logcheck="$logcheck `$ssh root@$sourceserver \"/scripts/pkgacct $user;exit\" &> >(tee --append $logfile)`"
+                error_check $logcheck
+
 
                 # copy (scp) the cpmove file from the source to destination servcd /er
+                
                 echo -en "\E[40;34mCopying the package from source to destination...\E[0m \n" 
                 #Adding a log marker
-                echo "#@2# $user - Transferring package Destination < Source" >> $logfile      
-                $scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ >> $logfile 2>&1
+                logcheck=""
+                logcheck="$logcheck `echo '#@2# $user - Transferring package Destination < Source' &> >(tee --append $logfile)`"
+                logcheck="$logcheck `$scp root@$sourceserver:/home/cpmove-$user.tar.gz /home/ &> >(tee --append $logfile)`"
+                error_check $logcheck
 
                 # Remove cpmove from source server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
                         echo -en "\E[40;34mRemoving the package from the source...\E[0m \n"
                         #Adding a log marker
-                        echo "#@3# $user - Remove package from Source" >> $logfile     
-                        $ssh root@$sourceserver "rm -f /home/cpmove-$user.tar.gz ;exit" >> $logfile 2>&1
+                        logcheck=""
+                        logcheck="$logcheck `echo '#@3# $user - Remove package from Source' &> >(tee --append $logfile)`"
+                        logcheck="$logcheck `$ssh root@$sourceserver 'rm -f /home/cpmove-$user.tar.gz ;exit' &> >(tee --append $logfile)`"
+                        error_check $logcheck
                 fi
+
 
                 # Restore package on the destination server (if set)
                 echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"
                 #Adding a log marker
-                echo "#@4# $user - Restoring package" >> $logfile     
-                /scripts/restorepkg /home/cpmove-$user.tar.gz >> $logfile 2>&1
+                logcheck=""
+                logcheck="$logcheck `echo '#@4# $user - Restoring package' &> >(tee --append $logfile)`"
+                logcheck="$logcheck `/scripts/restorepkg /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
+                error_check $logcheck
 
                 # Remove cpmove from destination server (if set)
                 if [[ $keeparchives == 1 ]]; then :
 		else
                         echo -en "\E[40;34mRemoving the package from the destination...\E[0m \n"
                         #Adding a log marker
-                        echo "#@5# $user - Remove package from Destination" >> $logfile     
-                        rm -fv /home/cpmove-$user.tar.gz >> $logfile 2>&1
+                        logcheck=""
+                        logcheck="$logcheck `echo '#@5# $user - Remove package from Destination' &> >(tee --append $logfile)`"    
+                        logcheck="$logcheck `rm -fv /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
                 fi
                 i=`expr $i + 1`
                 echo "#@E# $user END" >> $logfile
@@ -226,32 +237,35 @@ process_loop(){
 ### for fail/bailout conditions
 #############################################
 error_check(){
-userid=`echo $logsegment | head -1 | awk {'print $2'}
-segment=`echo $logsegment | head -1 | awk {'print $1'}`
-
-if [[ $segment -eq "#@1#" ]]; then
-	
-	
-	#PHASE 1 - Packaging account
-	elif [[ $segment -eq "#@1#" ]] ; then
-		#Critical checks
-	
-	   #Error checks
-	   
-	   #Warning checks
-	   
-	#PHASE 2 - Transferring account
-	elif [[ $segment -eq "#@2#" ]] ; then
-   #PHASE 3 - Remove Package from source
-	elif [[ $segment -eq "#@3#" ]] ; then
-	#PHASE 4 - Rstoring account
-	elif [[ $segment -eq "#@4#" ]] ; then
-	#PHASE 5 - Remove package from destination
-	elif [[ $segment -eq "#@6#" ]] ; then
-
-
-fi
-
+#logsegment=$1
+#userid=`echo $logsegment | head -1 | awk {'print $2'}`
+#segment=`echo $logsegment | head -1 | awk {'print $1'}`
+#
+#if [[ $segment -eq "#@1#" ]]; then
+#	echo $1
+#
+#	#PHASE 1 - Packaging account
+#	elif [[ $segment -eq "#@1#" ]] ; then
+#		#Critical checks
+#
+#	   #Error checks
+##	   #Warning checks
+#	   	echo $1
+#	#PHASE 2 - Transferring account
+#	elif [[ $segment -eq "#@2#" ]] ; then
+#	echo $1
+#   #PHASE 3 - Remove Package from source
+#	elif [[ $segment -eq "#@3#" ]] ; then
+#	echo $1
+#	#PHASE 4 - Rstoring account
+#	elif [[ $segment -eq "#@4#" ]] ; then
+#	echo $1
+#	#PHASE 5 - Remove package from destination
+#	elif [[ $segment -eq "#@6#" ]] ; then
+#	echo $1
+#
+#fi
+#echo "$logcheck"
 
 }
 
