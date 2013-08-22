@@ -265,7 +265,7 @@ process_loop(){
         #Warning checks
         ####################
         warnings="`echo \"$logcheck\" | egrep \"Warning|warning\"`"
-        if [[ ! $errors == "" ]]; then
+        if [[ ! $warnings == "" ]]; then
             echo -en "\E[40;35m Warning(s) detected!\E[0m \n"
             echo "###### Warnings(s) detected! #####" >> $logfile
             echo "$warnings" > >(tee --append $logfile)
