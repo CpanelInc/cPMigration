@@ -365,7 +365,6 @@ epoch=`date +%s`
 set_logging_mode
 
 #Setup Remote Server
-setup_remote
 
 # Generate accounts list
 generate_accounts_list
