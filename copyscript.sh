@@ -44,7 +44,9 @@ print_help(){
 	echo '-l <filename>,  Read accounts from list'
 	echo '-p sourceport'
 	echo '-k keep archives on both servers'
+    echo '-S skip remote setup'
 	echo '-h displays this dialogue'
+    
 	echo; echo; exit 1
 }
 
@@ -298,13 +300,14 @@ process_loop(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:l:kh" opt; do
+while getopts ":s:p:a:l:khS" opt; do
 	case $opt in
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
         	l) listmode="1"; listfile="$OPTARG";;
         	k) keeparchives=1;;
+            S) skipremotesetup="1";;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
@@ -364,7 +367,10 @@ epoch=`date +%s`
 # Set logging mode
 set_logging_mode
 
-#Setup Remote Server
+# Setup Remote Server
+if [ ! $skipremotesetup == "1"]; then
+    setup_remote
+fi
 
 # Generate accounts list
 generate_accounts_list
