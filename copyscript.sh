@@ -44,7 +44,10 @@ print_help(){
 	echo '-l <filename>,  Read accounts from list'
 	echo '-p sourceport'
 	echo '-k keep archives on both servers'
+    echo '-D use DEVEL scripts on remote setup (3rdparty)'
+    echo '-S skip remote setup'
 	echo '-h displays this dialogue'
+    
 	echo; echo; exit 1
 }
 
@@ -85,7 +88,7 @@ set_logging_mode(){
 	logfile="$scripthome/log/$epoch.log"
 	case "$1" in
 		verbose)
-			logoutput="&> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))"
+			logoutput="&> >(tee --append $logfile)"
 			;;
 		*)
 			logoutput=">> $logfile "
@@ -94,55 +97,63 @@ set_logging_mode(){
 }
 
 setup_remote(){
+
+    if [[ $develmode == "1" ]]; then
+        echo "DEVEL MODE SET" &> >(tee --append $logfile)
+        pkgacctbranch="DEVEL"
+    else
+        pkgacctbranch="PUBLIC"
+    fi
+
    control_panel=`$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"` >> $logfile 2>&1
 	#echo "Checking remote server control panel: $control_panel" 
 	#echo "CONTROL PANEL: $control_panel"
 	if [[ $control_panel = "cpanel" ]]; then : echo "Source is cPanel,  nothing special to do"  # no need to bring over things if cPanel#
 	elif [[ $control_panel = "plesk" ]]; then  # wget or curl from httpupdate
-		echo "The Source server is Plesk!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
-		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "The Source server is Plesk!"  &> >(tee --append $logfile)
+		echo "Setting up scripts, Updating user domains" &> >(tee --append $logfile)
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
 		if [[ ! -f /scripts/pkgacct ]]; then 
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-pXa -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/pkgacct-pXa -P /scripts;
 		mv /scripts/pkgacct-pXa /scripts/pkgacct;
 		chmod 755 /scripts/pkgacct
 		fi;
 		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
 	elif [[ $control_panel = "ensim" ]]; then
-		echo "The Source server is Ensim!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
-		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "The Source server is Ensim!"  &> >(tee --append $logfile)
+		echo "Setting up scripts, Updating user domains" &> >(tee --append $logfile)
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
 		if [[ ! -f /scripts/pkgacct ]]; then 
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-enXim -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/pkgacct-enXim -P /scripts;
 		mv /scripts/pkgacct-enXim /scripts/pkgacct;
 		chmod 755 /scripts/pkgacct
 		fi;
 		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
 	elif [[ $control_panel = "da" ]]; then
-		echo "The Source server is Direct Admin!"  &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
-		echo "Setting up scripts, Updating user domains" &> >(tee --append >((sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' >> $logfile)))
+		echo "The Source server is Direct Admin!"  &> >(tee --append $logfile)
+		echo "Setting up scripts, Updating user domains" &> >(tee --append $logfile)
 		$ssh root@$sourceserver "
 		if [[ ! -d /scripts ]]; then 
 		mkdir /scripts ;fi; 
 		if [[ ! -f /scripts/pkgacct ]]; then 
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/pkgacct-dXa -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/pkgacct-dXa -P /scripts;
 		mv /scripts/pkgacct-dXa /scripts/pkgacct;
 		chmod 755 /scripts/pkgacct
 		fi;
 		if [[ ! -f /scripts/updateuserdomains-universal ]]; then
-		wget http://httpupdate.cpanel.net/cpanelsync/transfers_PUBLIC/pkgacct/updateuserdomains-universal -P /scripts;
+		wget http://httpupdate.cpanel.net/cpanelsync/transfers_$pkgacctbranch/pkgacct/updateuserdomains-universal -P /scripts;
 		chmod 755 /scripts/updateuserdomains-universal;
 		fi;
 		/scripts/updateuserdomains-universal;" >> $logfile 2>&1
@@ -225,16 +236,16 @@ process_loop(){
         done
 }
 
-        #############################################
-        ### function error_check
-        #############################################
-        ### This function checks the last segment of
-        ### the logs for known errors.  It also looks
-        ### for fail/bailout conditions
-        #############################################
-        error_check(){
-        userid="`echo $logcheck | head -1 | awk {'print $2'}`"
-        segment="`echo $logcheck | head -1 | awk {'print $1'}`"
+#############################################
+### function error_check
+#############################################
+### This function checks the last segment of
+### the logs for known errors.  It also looks
+### for fail/bailout conditions
+#############################################
+error_check(){
+    userid="`echo $logcheck | head -1 | awk {'print $2'}`"
+    segment="`echo $logcheck | head -1 | awk {'print $1'}`"
 
 
         # GLOBAL CHECKS
@@ -298,13 +309,15 @@ process_loop(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:l:kh" opt; do
+while getopts ":s:p:a:l:kDhS" opt; do
 	case $opt in
         	s) sourceserver="$OPTARG";;
         	p) sourceport="$OPTARG";;
         	a) singlemode="1"; targetaccount="$OPTARG";;
         	l) listmode="1"; listfile="$OPTARG";;
         	k) keeparchives=1;;
+            D) develmode="1";;
+            S) skipremotesetup="1";;
         	h) print_help;;
        		\?) echo "invalid option: -$OPTARG"; echo; print_help;;
         	:) echo "option -$OPTARG requires an argument."; echo; print_help;;
@@ -364,8 +377,10 @@ epoch=`date +%s`
 # Set logging mode
 set_logging_mode
 
-#Setup Remote Server
-setup_remote
+# Setup Remote Server
+if [ ! $skipremotesetup == "1"]; then
+    setup_remote
+fi
 
 # Generate accounts list
 generate_accounts_list
