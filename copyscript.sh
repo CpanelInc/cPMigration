@@ -1,24 +1,11 @@
 #!/bin/bash
 # Original version written by Phil Stark
-# Maintained and updated by Phil Stark and Blaine Motsinger
+# Maintained by Phil Stark
+# Co-maintained by Blaine Motsinger
 #
 VERSION="1.0.19"
-scripthome="/root/.copyscript"
-#
-# Purpose:  to find all accounts existing on the Source server that do not exist
-# on the destination server, package and transfer those accounts,  and restore
-# them on the Destination  server automatically.  This is intended to use either
-# in lieu of the WHM tools or as a followup to manually  package accounts that
-# otherwise failed in WHM "Copy multiple accounts ..."
-#
-# usage: run on destination server
-# $ sh copyscript <sourceIP>
-####################
-# This script copies all accounts from the source server that do not exist
-# on the destination server already.
-# This should always be run on the destination server
-# NOTE:  a RSA key should be set up Destination > Source before running
-# this script for password-less login.
+scripthome="/root/.cpmig"
+# 
 #############################################
 
 
@@ -27,14 +14,14 @@ scripthome="/root/.copyscript"
 #############################################
 
 print_intro(){
-    echo 'copyscript'
+    echo 'cPMigration'
     echo "version $VERSION"
     echo
 }
 
 print_help(){
 	echo 'usage:'
-	echo './copyscript -s <hostname or ip>'
+	echo './cpmig -s <hostname or ip>'
 	echo
 	echo 'required:' 
 	echo '-s <hostname or ip>, sourceserver'
@@ -332,7 +319,7 @@ if [[ $# -eq 0 || -z $sourceserver ]]; then print_help; fi  # check for existenc
 
 # check for root
 if [ $EUID -ne 0 ]; then
-	echo 'copyscript must be run as root'
+	echo 'cpmig must be run as root'
 	echo; exit
 fi
 
