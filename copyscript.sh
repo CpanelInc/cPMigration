@@ -85,7 +85,7 @@ mkdir_ifneeded(){
 }
 
 set_logging_mode(){
-	logfile="$scripthome/log/$epoch.log"
+    logfile="$scripthome/log/`date +%Y-%m-%y`-$epoch.log"
 	case "$1" in
 		verbose)
 			logoutput="&> >(tee --append $logfile)"
@@ -99,10 +99,10 @@ set_logging_mode(){
 setup_remote(){
 
     if [[ $develmode == "1" ]]; then
-        echo "DEVEL MODE SET" &> >(tee --append $logfile)
+        echo "DEVEL Mode set for setup_remote" &> >(tee --append $logfile)
         pkgacctbranch="DEVEL"
     else
-        pkgacctbranch="PUBLIC"
+        pkgacctbranch="PUBLIC" &> >(tee --append $logfile)
     fi
 
    control_panel=`$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"` >> $logfile 2>&1
@@ -162,7 +162,6 @@ setup_remote(){
 
 
 process_loop(){
-        logfile="$scripthome/log/`date +%Y-%m-%y`-$epoch.log"
 
         # Override the normal accounts list if we're in Single user mode
         if [[ $singlemode -eq "1" ]]; then
@@ -378,7 +377,9 @@ epoch=`date +%s`
 set_logging_mode
 
 # Setup Remote Server
-if [ ! $skipremotesetup == "1"]; then
+if [[ $skipremotesetup == "1" ]]; then
+    echo "REMOTE SETUP SKIPPED" &> >(tee --append $logfile)
+else
     setup_remote
 fi
 
