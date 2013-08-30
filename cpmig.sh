@@ -312,7 +312,7 @@ error_check(){
 ### of the process.
 #############################################
 after_action_report(){
-    logfile_afteraction="$scripthome/log/`date +%Y-%m-%y`-$epoch_after-action.txt"
+    logfile_afteraction="$scripthome/log/`date +%Y-%m-%y`-$epoch-after-action.txt"
 
 
 
@@ -324,7 +324,7 @@ after_action_report(){
     after_action_data="$after_action_data `echo \" Accounts that were not migrated (see logs): \" &> >(tee --append $logfile_afteraction)`"
     after_action_data="$after_action_data `echo \"$missingusers\" &> >(tee --append $logfile_afteraction)`"
 
-    echo -en "$after_action_data"
+    cat $logfile_afteraction
 
 }
 
