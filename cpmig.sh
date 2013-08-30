@@ -3,7 +3,7 @@
 # Maintained by Phil Stark
 # Co-maintained by Blaine Motsinger
 #
-VERSION="1.0.19"
+VERSION="1.0.20"
 scripthome="/root/.cpmig"
 # 
 #############################################
@@ -61,7 +61,7 @@ generate_accounts_list(){
     sort /etc/trueuserdomains > $scripthome/.destdomains
 
     # diff out the two lists,  parse out usernames only and remove whitespace.  Output to copyaccountlist :)
-    diff -y $scripthome/.sourcedomains $scripthome/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' | grep -v "cptkt" > $scripthome/.copyaccountlist
+    copyaccountlist="`diff -y $scripthome/.sourcedomains $scripthome/.destdomains | grep \< | awk -F':' '{ print $2 }' | sed -e 's/^[ \t]*//' | awk -F' ' '{ print $1 }' | grep -v \"cptkt\" `"
 }
 
 mkdir_ifneeded(){
@@ -150,21 +150,21 @@ process_loop(){
 
     # Override the normal accounts list if we're in Single user mode
     if [[ $singlemode -eq "1" ]]; then
-        grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' > $scripthome/.copyaccountlist;
+        copyaccountlist="`grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
     fi
         
     if [[ $listmode -eq "1" ]]; then
-        echo > $scripthome/.copyaccountlist
+        copyaccountlist=""
         for targetaccount in `cat $listfile`
         do
-            grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}' >> $scripthome/.copyaccountlist;
+            copyaccountlist="$copyaccountlist `grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`
         done
     fi
 
     i=1
-    count=`cat $scripthome/.copyaccountlist | wc -l`
+    count=`echo $copyaccountlist | wc -l`
         
-    for user in `cat $scripthome/.copyaccountlist`; do
+    for user in `echo $copyaccountlist`; do
         progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
         echo -en "\E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n"
 
@@ -219,6 +219,17 @@ process_loop(){
         fi
             i=`expr $i + 1`
             echo "#@E# $user END" >> $logfile
+
+        #User check
+        if [[ $(ls -1 /var/cpanel/users | grep $user | wc -1) -eq 0 ]]; then
+            echo -en "\E[40;31m User DOES NOT exist on destionation.  This user (user) was not migrated.  Please check the logs at $logfile for more details.\E[0m \n"
+            echo "#@V# ERROR $user was not found on the destination!  Something went wrong."  >> $logfile
+            missingusers="$missingusers $user"
+        else
+            echo "User exists on destination."
+            echo "#@V# $user VERIFIED EXISTS" >> $logfile
+            verifiedusers ="$verifiedusers $user"
+        fi
     done
 }
 
@@ -239,13 +250,13 @@ error_check(){
     #Critical checks
     ####################
     criticals="`echo \"$logcheck\" | egrep "Critical error strings here"`"
-        if [[ ! $criticals == "" ]]; then
-            echo -en "\E[30;41m Critical error(s) detected!\E[0m \n"
-            echo "######!!!!! Critical error(s) detected! !!!!!#####" >> $logfile
-            echo "$criticals" > >(tee --append $logfile)
-            echo -en "\E[30;41m cP Migrations is bailing out \E[0m \n"
-            exit
-        fi
+    if [[ ! $criticals == "" ]]; then
+        echo -en "\E[30;41m Critical error(s) detected!\E[0m \n"
+        echo "######!!!!! Critical error(s) detected! !!!!!#####" >> $logfile
+        echo "$criticals" > >(tee --append $logfile)
+        echo -en "\E[30;41m cP Migrations is bailing out \E[0m \n"
+        exit
+    fi
     ####################
     #Error checks
     ####################
@@ -287,9 +298,35 @@ error_check(){
     echo > /dev/null
 
     fi
-    logcheck=""
+    echo "$logcheck" >> /var/cpanel/logs/copyacct_$user_$sourceserver_`date +%s`_cPMigration
 }
 ### END FUNCTION error_check
+
+#############################################
+### function after_action_report
+#############################################
+### This function prints and logs an after
+### action report for the user at the end
+### of the process.
+#############################################
+after_action_report(){
+    logfile_afteraction="$scripthome/log/`date +%Y-%m-%y`-$epoch_after-action.txt"
+
+
+
+    after_action_data="$logcheck `echo \"cPMigration After-Action Report\" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \"  \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \" Accounts that were migrated: \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \"$verifiedusers\" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \"  \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \" Accounts that were not migrated (see logs): \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$logcheck `echo \"$missingusers\" &> >(tee --append $logfile_afteraction)`"
+
+    echo "$after_action_data"
+
+}
+
+
 
 #############################################
 ### get options
