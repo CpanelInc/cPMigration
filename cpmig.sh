@@ -157,16 +157,16 @@ process_loop(){
         copyaccountlist=""
         for targetaccount in `cat $listfile`
         do
-            copyaccountlist="$copyaccountlist `grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`
+            copyaccountlist="$copyaccountlist `grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
         done
     fi
 
     i=1
-    count=`echo $copyaccountlist | wc -l`
-        
+    count=`echo $copyaccountlist | wc -w`
     for user in `echo $copyaccountlist`; do
+        userepoch="`date +%s`"
         progresspercent=`echo $i $count | awk '{print ( $1 - 1 ) / $2 * 100}'`
-        echo -en "\E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \\E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n"
+        echo -en "\E[40;32m############### \E[40;33mProcessing account \E[40;37m$user \E[40;33m$i/$count \E[40;33m(\E[40;32m$progresspercent% \E[40;33mCompleted) \E[40;32m################\E[0m \n"
 
         #Adding a log marker
         echo "################################################################" >> $logfile
@@ -221,14 +221,14 @@ process_loop(){
             echo "#@E# $user END" >> $logfile
 
         #User check
-        if [[ $(ls -1 /var/cpanel/users | grep $user | wc -1) -eq 0 ]]; then
-            echo -en "\E[40;31m User DOES NOT exist on destionation.  This user (user) was not migrated.  Please check the logs at $logfile for more details.\E[0m \n"
+        if [[ $(ls -1 /var/cpanel/users | grep $user | wc -w) -eq 0 ]]; then
+            echo -en "\E[40;31m User DOES NOT exist on destination.  This user ($user) was not migrated.  Please check the logs at $logfile for more details.\E[0m \n"
             echo "#@V# ERROR $user was not found on the destination!  Something went wrong."  >> $logfile
             missingusers="$missingusers $user"
         else
-            echo "User exists on destination."
+            echo "$user completed."
             echo "#@V# $user VERIFIED EXISTS" >> $logfile
-            verifiedusers ="$verifiedusers $user"
+            verifiedusers="$verifiedusers $user"
         fi
     done
 }
@@ -249,7 +249,7 @@ error_check(){
     ###################
     #Critical checks
     ####################
-    criticals="`echo \"$logcheck\" | egrep "Critical error strings here"`"
+    criticals="`echo \"$logcheck\" | egrep "putsomethinghere"`"
     if [[ ! $criticals == "" ]]; then
         echo -en "\E[30;41m Critical error(s) detected!\E[0m \n"
         echo "######!!!!! Critical error(s) detected! !!!!!#####" >> $logfile
@@ -260,7 +260,7 @@ error_check(){
     ####################
     #Error checks
     ####################
-    errors="`echo \"$logcheck\" | egrep \"error|Error\"`"
+    errors="`echo \"$logcheck\" | egrep \"putsomethinghere\"`"
     if [[ ! $errors == "" ]]; then
         echo -en "\E[40;31m Error(s) detected!\E[0m \n"
         echo "###### Error(s) detected! #####" >> $logfile
@@ -272,33 +272,35 @@ error_check(){
     ####################
     #Warning checks
     ####################
-    warnings="`echo \"$logcheck\" | egrep \"Warning|warning\"`"
+    warnings=""
+    warnings="$warnings `echo \"$logcheck\" | egrep \"/bin/gtar: Error\"`"
     if [[ ! $warnings == "" ]]; then
-        echo -en "\E[40;35m Warning(s) detected!\E[0m \n"
+        #echo -en "\E[40;35m Warning(s) detected!\E[0m \n"
         echo "###### Warnings(s) detected! #####" >> $logfile
-        echo "$warnings" > >(tee --append $logfile)
+        echo "$warnings" >> $logfile
         warnusers="$warnusers $userid"
     fi
 
     #Phase Specific Checks
     #PHASE 1 - Packaging account
-    if [ $segment == '#@1#' ] ; then
-    echo > /dev/null
+    #if [ $segment == '#@1#' ] ; then
+    #echo > /dev/null
     #PHASE 2 - Transferring account
-    elif [ $segment = "#@2#" ] ; then
-    echo > /dev/null
+    #elif [ $segment = "#@2#" ] ; then
+    #echo > /dev/null
     #PHASE 3 - Remove Package from source
-    elif [ $segment = "#@3#" ] ; then
-    echo > /dev/null
+    #elif [ $segment = "#@3#" ] ; then
+    #echo > /dev/null
     #PHASE 4 - Rstoring account
-    elif [ $segment = "#@4#" ] ; then
-    echo > /dev/null
+    #elif [ $segment = "#@4#" ] ; then
+    #echo > /dev/null
     #PHASE 5 - Remove package from destination
-    elif [ $segment = "#@6#" ] ; then
-    echo > /dev/null
+    #elif [ $segment = "#@6#" ] ; then
+    #echo > /dev/null
 
-    fi
-    echo "$logcheck" >> /var/cpanel/logs/copyacct_$user_$sourceserver_`date +%s`_cPMigration
+    #fi
+    echo "<plaintext> $logcheck </plaintext>" >> /var/cpanel/logs/copyacct_`echo $user`_`echo $sourceserver`_`echo $userepoch`_cPMigration
+    logcheck=""
 }
 ### END FUNCTION error_check
 
@@ -314,15 +316,15 @@ after_action_report(){
 
 
 
-    after_action_data="$logcheck `echo \"cPMigration After-Action Report\" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \"  \" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \" Accounts that were migrated: \" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \"$verifiedusers\" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \"  \" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \" Accounts that were not migrated (see logs): \" &> >(tee --append $logfile_afteraction)`"
-    after_action_data="$logcheck `echo \"$missingusers\" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \"cPMigration After-Action Report\" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \"  \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \" Accounts that were migrated: \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \"$verifiedusers\" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \"  \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \" Accounts that were not migrated (see logs): \" &> >(tee --append $logfile_afteraction)`"
+    after_action_data="$after_action_data `echo \"$missingusers\" &> >(tee --append $logfile_afteraction)`"
 
-    echo "$after_action_data"
+    echo -en "$after_action_data"
 
 }
 
@@ -418,3 +420,4 @@ warnusers=""
 ### Process loop
 #############################################
 process_loop
+after_action_report
