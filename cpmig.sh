@@ -3,6 +3,11 @@
 # Maintained by Phil Stark
 # Co-maintained by Blaine Motsinger
 #
+# README
+# https://raw.github.com/philstark/cPMigration/DEVELOPMENT/README.md
+#
+# https://github.com/philstark/cPMigration/
+#
 VERSION="1.0.20"
 scripthome="/root/.cpmig"
 # 
