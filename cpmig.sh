@@ -238,7 +238,7 @@ process_loop(){
             echo "$user completed."
             echo "#@V# $user VERIFIED EXISTS" >> $logfile
             verifiedusers="$verifiedusers $user"
-            echo "$user ... Success" >> $logfile_status
+            echo "$user ... OK" >> $logfile_status
         fi
     done
 }
