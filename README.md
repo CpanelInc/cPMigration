@@ -1,4 +1,4 @@
-CPMigration
+cPMigration
 ==========
 
 cPMigration is a CLI tool created to streamline the migration process to cPanel
@@ -75,17 +75,52 @@ from where it is running.
             
     -h  -   Displays the help dialogue.
 
+### Default operation
+
+    The default operation of this script is specifically when the script is started
+    with the minimal required parameters.  For example:
+    
+    ./cpmig -s 192.168.0.10
+    
+    The default operation is as follows:
+    
+    * Install sshpass for cpmig if not already done
+    * Promt user for Source server password
+    * Connect to the Source server,  determine it's type,  and set up remote scripts
+    (if necessary)
+    * Compare a list of accounts from the Destination and the Source to build a list
+    of all accounts that do not already exist on the Destination server.
+    * Run the process loop on the listed accounts.
+    
+    Process Loop:
+    
+    The process loop consists of five phases.
+    
+    1) Package the account on the Source server.
+    2) Transfer the account package from the Source to the Destination server.
+    3) Delete the account package from the Source server.
+    4) Restore the account package to the Destination server.
+    5) Delete the account package from the Destination server.
+    
+    Error checking is done at every phase of the process and the end of the process
+    loop itself.
+
+
 ### Logging
 
     All cPMigration logging goes to /root/.cpmig/logs .  
     
-    There are two files generated for each migration in the following likeness:
+    There are three files generated for each migration in the following likeness:
     
     2013-08-13-1377862253-after-action.txt
+    2013-08-13-1377862253-status.txt
     2013-08-13-1377862253.log
 
     The after-action.txt is an output of the migration summary,  containing
     information about what accounts were successfull and which ones failed.
+    
+    The status.txt contains a simple list of usernames indicating whether they had
+    "FAILED" or were "OK".
     
     The .log file contains all the raw logs from all the migrations performed in the
     cPMigration run.  If there was a problem,  this is the place to look.
