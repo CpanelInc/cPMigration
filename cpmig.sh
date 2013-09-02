@@ -225,15 +225,20 @@ process_loop(){
             i=`expr $i + 1`
             echo "#@E# $user END" >> $logfile
 
+
+        logfile_status="$scripthome/log/`date +%Y-%m-%y`-$epoch-status.txt"
         #User check
         if [[ $(ls -1 /var/cpanel/users | grep $user | wc -w) -eq 0 ]]; then
             echo -en "\E[40;31m User DOES NOT exist on destination.  This user ($user) was not migrated.  Please check the logs at $logfile for more details.\E[0m \n"
             echo "#@V# ERROR $user was not found on the destination!  Something went wrong."  >> $logfile
             missingusers="$missingusers $user"
+            #user status file
+            echo "$user ... FAILED" >> $logfile_status
         else
             echo "$user completed."
             echo "#@V# $user VERIFIED EXISTS" >> $logfile
             verifiedusers="$verifiedusers $user"
+            echo "$user ... Success" >> $logfile_status
         fi
     done
 }
