@@ -200,7 +200,7 @@ process_loop(){
             echo -en "\E[40;34mRemoving the package from the source...\E[0m \n"
             #Adding a log marker
             logcheck="$logcheck `echo \"#@3# $user - Remove package from Source\" &> >(tee --append $logfile)`"
-            logcheck="$logcheck `$ssh root@$sourceserver 'rm -f /home/cpmove-$user.tar.gz ;exit' &> >(tee --append $logfile)`"
+            logcheck="$logcheck `$ssh root@$sourceserver \"rm -f /home/cpmove-$user.tar.gz ;exit\" &> >(tee --append $logfile)`"
             error_check
         fi
 
