@@ -8,7 +8,7 @@
 #
 # https://github.com/philstark/cPMigration/
 #
-VERSION="1.0.21"
+VERSION="1.1.0"
 scripthome="/root/.cpmig"
 # 
 #############################################
