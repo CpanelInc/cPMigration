@@ -18,7 +18,7 @@ from where it is running.
     -a <username or domain>, specify single account
     -l <filename>,  Read accounts from list
     -k keep archives on both servers
-    -D use DEVEL scripts on remote setup (3rdparty)
+    -P use PUBLIC scripts on remote setup (3rdparty)
     -S skip remote setup
     -h displays this dialogue
 
@@ -65,9 +65,9 @@ from where it is running.
             This option prevents the script from deleting the cpmove tar.gz files 
             after it's done with them.
             
-    -D  -   Use DEVEL scripts for remote scripts used on third party migrations.
-            This option allows the script to use the DEVEL tree for pkgacct instead 
-            of PUBLIC
+    -P  -   Use PUBLIC scripts for remote scripts used on third party migrations.
+            This option allows the script to use the PUBLIC tree for pkgacct instead 
+            of DEVEL
             
     -S  -   Skip remote setup
             This option skips remote setup entirely.  Useful if the scripts on the 
