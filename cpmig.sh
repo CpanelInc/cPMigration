@@ -8,7 +8,7 @@
 #
 # https://github.com/philstark/cPMigration/
 #
-VERSION="1.1.0"
+VERSION="1.1.1"
 scripthome="/root/.cpmig"
 # 
 #############################################
@@ -36,7 +36,7 @@ print_help(){
 	echo '-l <filename>,  Read accounts from list'
 	echo '-p sourceport'
 	echo '-k keep archives on both servers'
-    echo '-D use DEVEL scripts on remote setup (3rdparty)'
+    echo '-P use PUBLIC scripts on remote setup (3rdparty)'
     echo '-S skip remote setup'
     echo '-h displays this dialogue'
     echo; echo; exit 1
@@ -88,11 +88,11 @@ set_logging_mode(){
 }
 
 setup_remote(){
-    if [[ $develmode == "1" ]]; then
-        echo "DEVEL Mode set for setup_remote" &> >(tee --append $logfile)
-        pkgacctbranch="DEVEL"
+    if [[ $publicmode == "1" ]]; then
+        echo "PUBLIC Mode set for setup_remote" &> >(tee --append $logfile)
+        pkgacctbranch="PUBLIC"
     else
-        pkgacctbranch="PUBLIC" &> >(tee --append $logfile)
+        pkgacctbranch="DEVEL" &> >(tee --append $logfile)
     fi
 
     control_panel=`$ssh root@$sourceserver "if [ -e /usr/local/psa/version	 ];then echo plesk; elif [ -e /usr/local/cpanel/cpanel ];then echo cpanel; elif [ -e /usr/bin/getapplversion ];then echo ensim; elif [ -e /usr/local/directadmin/directadmin ];then echo da; else echo unknown;fi;exit"` >> $logfile 2>&1
@@ -351,7 +351,7 @@ while getopts ":s:p:a:l:kDhS" opt; do
         a) singlemode="1"; targetaccount="$OPTARG";;
         l) listmode="1"; listfile="$OPTARG";;
         k) keeparchives=1;;
-        D) develmode="1";;
+        P) publicmode="1";;
         S) skipremotesetup="1";;
         h) print_help;;
         \?) echo "invalid option: -$OPTARG"; echo; print_help;;
