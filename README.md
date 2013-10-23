@@ -23,7 +23,9 @@ cPMigration is not officially supported by cPanel, Inc.  It is developed and mai
     -k keep archives on both servers
     -D use DEVEL scripts on remote setup (3rdparty)
     -S skip remote setup
+    -R <destip>, Set up Remote MySQL grants for destination ip (cPanel > cPanel migration only)
     -h displays this dialogue
+
 
 ### Options
 
@@ -75,6 +77,17 @@ cPMigration is not officially supported by cPanel, Inc.  It is developed and mai
     -S  -   Skip remote setup
             This option skips remote setup entirely.  Useful if the scripts on the 
             Source are modified.
+
+    -R	-   Use Remote MySQL Mode
+            When both hosts share the same Remote MySQL mode,  special steps must be
+            taken for success.
+
+            Example:
+            ./cpmig -s 192.168.0.10 -R 192.168.0.11
+
+            <destip> is the IP interface on the Destination server that is used to
+            access the Remote MySQL Host.  If this is done through a private network,
+            then use the private IP address bound to the Destination server.
             
     -h  -   Displays the help dialogue.
 
