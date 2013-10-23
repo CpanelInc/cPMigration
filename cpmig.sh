@@ -246,10 +246,8 @@ process_loop(){
     if [[ $remotemysql -eq 1 ]]; then
       $scp root@$sourceserver:/var/cpanel/databases/$user.* /var/cpanel/databases/ &> $logfile 2>&1
       authorization="\"Authorization: WHM root:$sourceaccesshash\""
-      addhost="\"https://localhost:2087/xml-api/cpanel?user=$user&cpanel_xmlapi_user=$user&cpanel_xmlapi_module=Mysql&cpanel_xmlapi_func=delhost&cpanel_xmlapi_apiversion=1&arg-0=$grantip\""
-      delhost="\"https://localhost:2087/xml-api/cpanel?user=$user&cpanel_xmlapi_user=$user&cpanel_xmlapi_module=Mysql&cpanel_xmlapi_func=addhost&cpanel_xmlapi_apiversion=1&arg-0=$grantip\""
+      addhost="\"https://localhost:2087/xml-api/cpanel?user=$user&cpanel_xmlapi_user=$user&cpanel_xmlapi_module=Mysql&cpanel_xmlapi_func=addhost&cpanel_xmlapi_apiversion=1&arg-0=$grantip\""
       $ssh root@$sourceserver "
-curl -s -k -H $authorization $delhost
 curl -s -k -H $authorization $addhost
       " >> $logfile 2>&1
     fi
