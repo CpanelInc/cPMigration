@@ -6,6 +6,9 @@ managed servers.  This tool is designed for migrating accounts from Plesk,
 DirectAdmin, and Ensim, and even other cPanel servers to the Destination server
 from where it is running.
 
+DISCLAIMER:
+cPMigration is not officially supported by cPanel, Inc.  It is developed and maintained by cPanel employees,  but is provided for educational purposes only.  Usage of this script is to done so at the operator's discretion.
+
 ### usage
 
     ./cpmig -s <hostname or ip> [options]
