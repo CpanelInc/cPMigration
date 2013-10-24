@@ -206,9 +206,19 @@ process_loop(){
       error_check
     fi
     
-    
     # Restore package on the destination server (if set)
     echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"
+    
+    # Determine if account should get a dedicated IP
+    if [[ $dedicatedips -eq  1 ]]; then
+      if [[ "`cat $scripthome/.sourcededicatedaccounts | awk '{ print $1 }' | grep $user | wc -l`" -eq  1 ]]; then
+        update_ipdata
+        echo "DEDICATED IP: $destnextavailableip" &> >(tee --append $logfile)
+        restoreipflag="--ip $destnextavailableip"
+      else
+        restoreipflag=""
+      fi
+    fi
     
     # Restore IP Address
     if [[ $restoreipmode -eq 1 ]]; then
@@ -262,6 +272,47 @@ curl -s -k -H $authorization $addhost
     fi
     
   done
+}
+
+update_ipdata(){
+  
+  curl -s -k -H "Authorization: WHM root:$sourceaccesshash" "https://$sourceserver:2087/xml-api/listips" | sed -e :a -e N -e '$!ba' -e 's/\n/ /g' -e  "s/<result>/\\`echo -e '\n\r'`<result>/g" -e "s/<\!/\\`echo -e '\n\r'`<\!>/g" | sed -e 's/ //g' -e '/<listips>/d' -e '/<\!>/d' -e 's/<\/[^>]*>//g' -e 's/<result>//g' -e 's/</ </g' > $scripthome/.ipdatasource
+  
+  curl -s -k -H "Authorization: WHM root:$destaccesshash" "https://localhost:2087/xml-api/listips" | sed -e :a -e N -e '$!ba' -e 's/\n/ /g' -e  "s/<result>/\\`echo -e '\n\r'`<result>/g" -e "s/<\!/\\`echo -e '\n\r'`<\!>/g" | sed -e 's/ //g' -e '/<listips>/d' -e '/<\!>/d' -e 's/<\/[^>]*>//g' -e 's/<result>//g' -e 's/</ </g' > $scripthome/.ipdatadest
+  
+  sourcededicatedipcount="`cat $scripthome/.ipdatasource | grep -e "<used>1" | grep "<dedicated>1" | wc -l`"
+  
+  destavailableips="`cat $scripthome/.ipdatadest | grep -e "<used>0" | grep -e "<dedicated>1" | wc -l`"
+  destnextavailableip="`cat $scripthome/.ipdatadest | grep -e "<used>0" | grep -e "<dedicated>1" | awk '{print $5}' | sed 's/<[^>]\+>//g' | head -1`"
+  
+}
+
+check_dedicatedips(){
+  if [[ $sourcededicatedipcount -eq  0 ]]; then
+    echo "No dedicated IP addresses detected"
+    dedicatedips="0"
+  else
+    if [[ $sourcededicatedipcount -gt  $destavailableips ]]; then
+      echo "NOT ENOUGH IPS:"
+      echo "Dedicated IPs Needed:  $sourcededicatedipcount           Dedicated IPs Available:  $destavailableips"
+      echo "Would you like to proceed by copying all accounts with dedicated IPs to the Main IP? [y/N] "
+      read -n 1 -r
+      if [[ $REPLY =~ ^[Yy]$ ]]
+      then
+        echo "Operator chose override.  Ignoring dedicated IPs."
+        dedicatedips="0"
+      else
+        echo "Operator chose abort.  Aborting script..."
+        exit
+      fi
+    else
+      echo "Dedicated IPs detected.  There is sufficient supply on the Destination."
+      echo "Dedicated IPs Needed:  $sourcededicatedipcount           Dedicated IPs Available:  $destavailableips"
+      echo "Assigning Dedicated IP addresses automatically"
+      dedicatedips="1"
+      $ssh root@$sourceserver "grep 'IP=' /var/cpanel/users/* | grep -v \"\`cat /var/cpanel/mainip\`\" | sed -e 's/\/var\/cpanel\/users\///g' -e 's/:IP=/ /g' " > $scripthome/.sourcededicatedaccounts
+    fi
+  fi
 }
 
 #############################################
@@ -426,8 +477,9 @@ else
   scp="$sshpass scp"
 fi
 
-#Get source access hash (for API calls)
+#Get access hashes (for API calls)
 sourceaccesshash=`$ssh root@$sourceserver "cat ~/.accesshash" | tr -d "\n"`
+destaccesshash=`cat ~/.accesshash | tr -d "\n"`
 
 # Make working directory
 mkdir_ifneeded $scripthome/log
@@ -460,6 +512,13 @@ if [[ $remotemysql -eq 1 ]]; then
 fi
 
 
+if [[ $control_panel = "cpanel" ]]; then
+  #Get IP data
+  update_ipdata
+  
+  # Check dedicated IPs
+  check_dedicatedips
+fi
 
 #############################################
 ### Process loop
