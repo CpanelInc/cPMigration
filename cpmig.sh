@@ -8,7 +8,7 @@
 #
 # https://github.com/philstark/cPMigration/
 #
-VERSION="1.1.3"
+VERSION="1.1.4"
 scripthome="/root/.cpmig"
 #
 #############################################
@@ -33,6 +33,7 @@ print_help(){
   echo
   echo 'optional:'
   echo '-a <username or domain>, specify single account'
+  echo '-i <ip address>,  specify ip address to restore to'
   echo '-l <filename>,  Read accounts from list'
   echo '-p <sourceport>'
   echo '-k keep archives on both servers'
@@ -209,10 +210,18 @@ process_loop(){
     # Restore package on the destination server (if set)
     echo -en "\E[40;34mRestoring the package to the destination...\E[0m \n"
     
+    # Restore IP Address
+    if [[ $restoreipmode -eq 1 ]]; then
+      echo "RESTORE IP: $restoreip" &> >(tee --append $logfile)
+      restoreipflag="--ip $restoreip"
+    fi
+    
     #Adding a log marker
     logcheck="$logcheck `echo \"#@4# $user - Restoring package\" &> >(tee --append $logfile)`"
-    logcheck="$logcheck `/scripts/restorepkg $forceremoterestore /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
+    logcheck="$logcheck `/scripts/restorepkg $forceremoterestore $restoreipflag /home/cpmove-$user.tar.gz &> >(tee --append $logfile)`"
     error_check
+    
+    
     
     # Remove cpmove from destination server (if set)
     if [[ $keeparchives == 1 ]]; then :
@@ -356,11 +365,12 @@ after_action_report(){
 ### get options
 #############################################
 
-while getopts ":s:p:a:l:kDhSR:" opt; do
+while getopts ":s:p:a:i:l:kDhSR:" opt; do
   case $opt in
     s) sourceserver="$OPTARG";;
     p) sourceport="$OPTARG";;
     a) singlemode="1"; targetaccount="$OPTARG";;
+    i) restoreipmode="1"; restoreip="$OPTARG";;
     l) listmode="1"; listfile="$OPTARG";;
     k) keeparchives=1;;
     D) develmode="1";;
@@ -448,6 +458,8 @@ if [[ $remotemysql -eq 1 ]]; then
   forceremoterestore="--force"
   skipdbpkgacct="--skipdb"
 fi
+
+
 
 #############################################
 ### Process loop

@@ -19,6 +19,7 @@ cPMigration is not officially supported by cPanel, Inc.  It is developed and mai
     optional:
     -p sourceport    
     -a <username or domain>, specify single account
+    -i <ip address>,  specify ip address to restore to
     -l <filename>,  Read accounts from list
     -k keep archives on both servers
     -D use DEVEL scripts on remote setup (3rdparty)
@@ -50,7 +51,13 @@ cPMigration is not officially supported by cPanel, Inc.  It is developed and mai
             ./cpmig -s 192.168.0.10 -a domuser
             -or-
             ./cpmig -s 192.168.0.10 -a domain.com
-            
+
+    -i  -   Specify which IP address the account should be restored to.
+
+            Example:
+
+            ./cpmig -s 192.168.0.10 -a domain.com -i 192.168.0.100
+
     -l  -   Read accounts from a list
             When you have a specific list of accounts to migrate,  use this option.
             
