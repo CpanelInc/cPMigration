@@ -157,14 +157,14 @@ process_loop(){
   
   # Override the normal accounts list if we're in Single user mode
   if [[ $singlemode -eq "1" ]]; then
-    copyaccountlist="`grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
+    copyaccountlist="`grep -w $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
   fi
   
   if [[ $listmode -eq "1" ]]; then
     copyaccountlist=""
     for targetaccount in `cat $listfile`
     do
-      copyaccountlist="$copyaccountlist `grep $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
+      copyaccountlist="$copyaccountlist `grep -w $targetaccount $scripthome/.sourcetudomains | head -1 | awk '{print $2}'`"
     done
   fi
   
