@@ -8,7 +8,7 @@
 #
 # https://github.com/philstark/cPMigration/
 #
-VERSION="1.1.4"
+VERSION="1.1.5"
 scripthome="/root/.cpmig"
 giturl="https://raw.github.com/CpanelInc/cPMigration/PUBLIC"
 #
