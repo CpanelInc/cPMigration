@@ -48,7 +48,7 @@ install_sshpass(){
   echo 'Getting sshpass...'
   mkdir_ifneeded $scripthome/.sshpass/sshpass-1.05/
   cd $scripthome/.sshpass
-  wget -quiet -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass
+  wget -q -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass
   chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
 }
 
