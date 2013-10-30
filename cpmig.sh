@@ -45,15 +45,11 @@ print_help(){
 }
 
 install_sshpass(){
-  echo 'Installing sshpass...'
-  mkdir_ifneeded $scripthome/.sshpass
+  echo 'Getting sshpass...'
+  mkdir_ifneeded $scripthome/.sshpass/sshpass-1.05/
   cd $scripthome/.sshpass
-  wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz
-  tar -zxvf $scripthome/.sshpass/sshpass-1.05.tar.gz -C $scripthome/.sshpass/
-  cd $scripthome/.sshpass/sshpass-1.05/
-  ./configure
-  make
-  echo; echo
+  wget -quiet -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass
+  chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
 }
 
 generate_accounts_list(){
