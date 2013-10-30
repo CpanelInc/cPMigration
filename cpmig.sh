@@ -46,10 +46,22 @@ print_help(){
 
 install_sshpass(){
   echo 'Getting sshpass...'
+  arch=`uname -i`
   mkdir_ifneeded $scripthome/.sshpass/sshpass-1.05/
-  cd $scripthome/.sshpass
-  wget -quiet -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass
-  chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
+  if [[ $arch -eq "x86_64"]]; then
+    wget -q -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass64
+    mv $scripthome/.sshpass/sshpass-1.05/sshpass64 $scripthome/.sshpass/sshpass-1.05/sshpass
+    chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
+    elif [[ $arch -eq "i386"]]; then
+    wget -q -P $scripthome/.sshpass/sshpass-1.05/ https://raw.github.com/CpanelInc/cPMigration/PUBLIC/support/sshpass32
+    mv $scripthome/.sshpass/sshpass-1.05/sshpass32 $scripthome/.sshpass/sshpass-1.05/sshpass
+    chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
+  else
+    echo "Server architechture not recognized: $arch"
+    echo "Bailing out...."
+    exit
+  fi
+  
 }
 
 generate_accounts_list(){
