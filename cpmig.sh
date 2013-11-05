@@ -46,23 +46,15 @@ print_help(){
 }
 
 install_sshpass(){
-  echo 'Getting sshpass...'
-  arch=`uname -i`
-  mkdir_ifneeded $scripthome/.sshpass/sshpass-1.05/
-  if [[ "$arch" -eq "x86_64" ]]; then
-    wget -q -P $scripthome/.sshpass/sshpass-1.05/ $giturl/support/sshpass64
-    mv $scripthome/.sshpass/sshpass-1.05/sshpass64 $scripthome/.sshpass/sshpass-1.05/sshpass
-    chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
-    elif [[ "$arch" -eq "i386" ]]; then
-    wget -q -P $scripthome/.sshpass/sshpass-1.05/ $giturl/support/sshpass32
-    mv $scripthome/.sshpass/sshpass-1.05/sshpass32 $scripthome/.sshpass/sshpass-1.05/sshpass
-    chmod +x $scripthome/.sshpass/sshpass-1.05/sshpass
-  else
-    echo "Server architechture not recognized: $arch"
-    echo "Bailing out...."
-    exit
-  fi
-  
+  echo 'Installing sshpass...'
+  mkdir_ifneeded $scripthome/.sshpass
+  cd $scripthome/.sshpass
+  wget -P $scripthome/.sshpass/ http://downloads.sourceforge.net/project/sshpass/sshpass/1.05/sshpass-1.05.tar.gz
+  tar -zxvf $scripthome/.sshpass/sshpass-1.05.tar.gz -C $scripthome/.sshpass/
+  cd $scripthome/.sshpass/sshpass-1.05/
+  ./configure
+  make
+  echo; echo
 }
 
 generate_accounts_list(){
